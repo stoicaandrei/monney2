@@ -79,5 +79,6 @@ export default defineSchema({
     tagIds: v.optional(v.array(v.id('tags'))),
   })
     .index('by_userId', ['userId'])
-    .index('by_userId_date', ['userId', 'date']),
+    .index('by_userId_date', ['userId', 'date'])
+    .index('by_walletId', ['walletId']),
 })

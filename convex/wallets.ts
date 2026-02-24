@@ -44,18 +44,31 @@ export const list = query({
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx)
     if (!user) return []
-    const docs = await ctx.db
+    const walletDocs = await ctx.db
       .query('wallets')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
       .collect()
-    return docs.map((doc) => ({
-      id: doc._id as string,
-      name: doc.name,
-      currency: doc.currency,
-      color: doc.color,
-      icon: doc.icon,
-      initialAmount: doc.initialAmount,
-    }))
+    // NOTE: For higher scale, consider a denormalized balance field on wallets.
+    const results = await Promise.all(
+      walletDocs.map(async (doc) => {
+        const transactions = await ctx.db
+          .query('transactions')
+          .withIndex('by_walletId', (q) => q.eq('walletId', doc._id))
+          .collect()
+        const transactionSum = transactions.reduce((sum, t) => sum + t.amount, 0)
+        const balance = doc.initialAmount + transactionSum
+        return {
+          id: doc._id as string,
+          name: doc.name,
+          currency: doc.currency,
+          color: doc.color,
+          icon: doc.icon,
+          initialAmount: doc.initialAmount,
+          balance,
+        }
+      }),
+    )
+    return results
   },
 })
 

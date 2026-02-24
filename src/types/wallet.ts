@@ -33,6 +33,7 @@ export interface Wallet {
   color: (typeof WALLET_COLORS)[number]['id']
   icon: WalletIconId
   initialAmount: number
+  balance: number // initialAmount + sum of all transactions
 }
 
 export interface WalletFormData {

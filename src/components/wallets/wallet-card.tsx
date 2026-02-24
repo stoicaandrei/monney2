@@ -25,7 +25,7 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
   const currency = CURRENCIES.find((c) => c.id === wallet.currency)
   const colorConfig = WALLET_COLORS.find((c) => c.id === wallet.color)
   const formattedAmount = formatCurrency(
-    wallet.initialAmount,
+    wallet.balance,
     wallet.currency,
     currency?.symbol,
   )
@@ -85,7 +85,7 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
         <p
           className={cn(
             'text-2xl font-semibold tabular-nums',
-            wallet.initialAmount < 0 && 'text-destructive',
+            wallet.balance < 0 && 'text-destructive',
           )}
         >
           {formattedAmount}
