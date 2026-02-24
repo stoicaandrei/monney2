@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Link } from 'react-router-dom'
 
 import { NavUser } from '@/components/layout/sidebar/nav-user'
 import { SidebarAction } from '@/components/layout/sidebar/sidebar-action'
@@ -31,7 +32,7 @@ const data = {
   navMain: [
     {
       title: 'Dashboard',
-      url: '#',
+      url: '/',
       icon: <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />,
     },
     {
@@ -96,14 +97,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
+              <Link to="/">
                 <HugeiconsIcon
                   icon={CommandIcon}
                   strokeWidth={2}
                   className="size-5!"
                 />
                 <span className="text-base font-semibold">Moneymaxxer</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

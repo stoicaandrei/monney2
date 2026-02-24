@@ -1,62 +1,62 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { AppSidebar } from '@/components/layout/sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { WalletCard } from '@/components/wallets/wallet-card'
-import { WalletFormDialog } from '@/components/wallets/wallet-form-dialog'
-import type { Wallet, WalletFormData } from '@/types/wallet'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Add01Icon } from '@hugeicons/core-free-icons'
-import { cn } from '@/lib/utils'
+import * as React from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { AppSidebar } from "@/components/layout/sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { WalletCard } from "@/components/wallets/wallet-card";
+import { WalletFormDialog } from "@/components/wallets/wallet-form-dialog";
+import type { Wallet, WalletFormData } from "@/types/wallet";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 
 export default function WalletsPage() {
-  const wallets = useQuery(api.wallets.list) ?? []
-  const isPending = false
-  const error = null
+  const wallets = useQuery(api.wallets.list) ?? [];
+  const isPending = false;
+  const error = null;
 
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [editingWallet, setEditingWallet] = React.useState<Wallet | null>(null)
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editingWallet, setEditingWallet] = React.useState<Wallet | null>(null);
 
-  const createWallet = useMutation(api.wallets.create)
-  const updateWallet = useMutation(api.wallets.update)
+  const createWallet = useMutation(api.wallets.create);
+  const updateWallet = useMutation(api.wallets.update);
 
   const handleCreate = () => {
-    setEditingWallet(null)
-    setDialogOpen(true)
-  }
+    setEditingWallet(null);
+    setDialogOpen(true);
+  };
 
   const handleEdit = (wallet: Wallet) => {
-    setEditingWallet(wallet)
-    setDialogOpen(true)
-  }
+    setEditingWallet(wallet);
+    setDialogOpen(true);
+  };
 
   const handleSubmit = (data: WalletFormData, existingId?: string) => {
     if (existingId) {
-      updateWallet({ id: existingId as Id<'wallets'>, ...data }).then(() => {
-        setDialogOpen(false)
-        setEditingWallet(null)
-      })
+      updateWallet({ id: existingId as Id<"wallets">, ...data }).then(() => {
+        setDialogOpen(false);
+        setEditingWallet(null);
+      });
     } else {
       createWallet(data).then(() => {
-        setDialogOpen(false)
-        setEditingWallet(null)
-      })
+        setDialogOpen(false);
+        setEditingWallet(null);
+      });
     }
-  }
+  };
 
   if (error) {
     return (
       <SidebarProvider
         style={
           {
-            '--sidebar-width': 'calc(var(--spacing) * 72)',
-            '--header-height': 'calc(var(--spacing) * 12)',
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
           } as React.CSSProperties
         }
       >
@@ -70,15 +70,15 @@ export default function WalletsPage() {
           </div>
         </SidebarInset>
       </SidebarProvider>
-    )
+    );
   }
 
   return (
     <SidebarProvider
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
@@ -123,9 +123,9 @@ export default function WalletsPage() {
                       type="button"
                       onClick={handleCreate}
                       className={cn(
-                        'flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-input',
-                        'bg-muted/30 transition-colors hover:border-primary/50 hover:bg-muted/50',
-                        'text-muted-foreground hover:text-foreground',
+                        "flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-input",
+                        "bg-muted/30 transition-colors hover:border-primary/50 hover:bg-muted/50",
+                        "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       <HugeiconsIcon
@@ -150,5 +150,5 @@ export default function WalletsPage() {
         onSubmit={handleSubmit}
       />
     </SidebarProvider>
-  )
+  );
 }

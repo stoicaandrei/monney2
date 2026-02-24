@@ -1,5 +1,6 @@
 'use client'
 
+import { NavLink } from 'react-router-dom'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -31,10 +32,15 @@ export function SidebarSection({
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <NavLink
+                to={item.url}
+                className={({ isActive }) =>
+                  isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                }
+              >
                 {item.icon}
                 <span>{item.title}</span>
-              </a>
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

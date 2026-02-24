@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,34 +7,34 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { HugeiconsIcon } from '@hugeicons/react'
+} from "@/components/ui/sidebar";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   MoreVerticalCircle01Icon,
   UserCircle02Icon,
   CreditCardIcon,
   Notification03Icon,
   Logout01Icon,
-} from '@hugeicons/core-free-icons'
-import { useClerk, useUser } from '@clerk/tanstack-react-start'
-import { getInitials } from '@/lib/utils'
+} from "@hugeicons/core-free-icons";
+import { useClerk, useUser } from "@clerk/clerk-react";
+import { getInitials } from "@/lib/utils";
 
 export function NavUser() {
-  const { isMobile } = useSidebar()
-  const { user } = useUser()
-  const clerk = useClerk()
+  const { isMobile } = useSidebar();
+  const { user } = useUser();
+  const clerk = useClerk();
 
-  if (!user) return null
+  if (!user) return null;
 
-  const fullName = user.fullName ?? user.firstName ?? 'User'
-  const avatarUrl = user.imageUrl
-  const initials = getInitials(fullName)
+  const fullName = user.fullName ?? user.firstName ?? "User";
+  const avatarUrl = user.imageUrl;
+  const initials = getInitials(fullName);
 
   return (
     <SidebarMenu>
@@ -63,7 +63,7 @@ export function NavUser() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
+            side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
@@ -90,5 +90,5 @@ export function NavUser() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
