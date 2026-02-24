@@ -10,6 +10,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { PenSquareIcon, Trash2 } from 'lucide-react'
 import { TransactionForm, formatDateForInput } from '@/components/transactions/transaction-form'
+import { parseDateString } from '@/lib/utils'
 import {
   TransactionFormDialog,
   type TransactionForEdit,
@@ -42,7 +43,7 @@ export default function TransactionsPage() {
       categoryId: data.categoryId as Id<'categories'>,
       amount: amountNum,
       note: data.note.trim() || undefined,
-      date: new Date(data.date).getTime(),
+      date: parseDateString(data.date).getTime(),
       tagIds: data.tagIds.length > 0 ? data.tagIds : undefined,
     })
   }

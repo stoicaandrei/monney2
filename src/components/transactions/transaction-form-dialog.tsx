@@ -15,6 +15,7 @@ import {
   formatDateForInput,
   type TransactionFormData,
 } from '@/components/transactions/transaction-form'
+import { parseDateString } from '@/lib/utils'
 
 export type TransactionForEdit = {
   id: Id<'transactions'>
@@ -67,7 +68,7 @@ export function TransactionFormDialog({
       categoryId: data.categoryId as Id<'categories'>,
       amount: amountNum,
       note: data.note.trim() || undefined,
-      date: new Date(data.date).getTime(),
+      date: parseDateString(data.date).getTime(),
       tagIds: data.tagIds.length > 0 ? data.tagIds : undefined,
     })
 

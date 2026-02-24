@@ -37,9 +37,10 @@ import {
 } from '@/components/ui/popover'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { TagCombobox } from '@/components/transactions/tag-combobox'
+import { formatDateToYYYYMMDD, parseDateString } from '@/lib/utils'
 
 export function formatDateForInput(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  return formatDateToYYYYMMDD(date)
 }
 
 function formatDateDisplay(date: Date | undefined): string {
@@ -107,7 +108,7 @@ export function TransactionForm({
   >('expense')
   const [datePickerOpen, setDatePickerOpen] = React.useState(false)
   const [dateMonth, setDateMonth] = React.useState<Date | undefined>(() =>
-    formData.date ? new Date(formData.date) : new Date()
+    formData.date ? parseDateString(formData.date) : new Date()
   )
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof TransactionFormData, string>>
@@ -161,7 +162,7 @@ export function TransactionForm({
   }, [isEditMode, defaultValues, expenseCategories, incomeCategories])
 
   React.useEffect(() => {
-    setDateMonth(formData.date ? new Date(formData.date) : new Date())
+    setDateMonth(formData.date ? parseDateString(formData.date) : new Date())
   }, [formData.date])
 
   const selectedWallet = React.useMemo(
@@ -448,7 +449,7 @@ export function TransactionForm({
                 >
                   <CalendarIcon className="mr-2 size-4" />
                   {formData.date
-                    ? formatDateDisplay(new Date(formData.date))
+                    ? formatDateDisplay(parseDateString(formData.date))
                     : 'Pick a date'}
                 </Button>
               </PopoverTrigger>
@@ -461,7 +462,7 @@ export function TransactionForm({
                   mode="single"
                   selected={
                     formData.date
-                      ? new Date(formData.date)
+                      ? parseDateString(formData.date)
                       : undefined
                   }
                   month={dateMonth}
