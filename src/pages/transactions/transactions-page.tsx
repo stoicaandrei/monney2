@@ -102,12 +102,43 @@ export default function TransactionsPage() {
                   return (
                     <div className="flex flex-col gap-4">
                       <h2 className="text-sm font-medium">Recent transactions</h2>
-                      {dateKeys.map((dateLabel) => (
+                      {dateKeys.map((dateLabel) => {
+                        const sectionTxs = grouped[dateLabel]
+                        const totalByCurrency = sectionTxs.reduce<
+                          Record<string, { sum: number; currency: string }>
+                        >((acc, tx) => {
+                          const wallet = wallets.find((w) => w.id === tx.walletId)
+                          const currency = wallet?.currency ?? 'USD'
+                          if (!acc[currency]) acc[currency] = { sum: 0, currency }
+                          acc[currency].sum += tx.amount
+                          return acc
+                        }, {})
+                        const totals = Object.values(totalByCurrency)
+
+                        return (
                         <div key={dateLabel} className="rounded-lg border">
-                          <div className="bg-muted/50 border-b px-4 py-2">
+                          <div className="bg-muted/50 flex items-center justify-between border-b px-4 py-2">
                             <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
                               {dateLabel}
                             </span>
+                            <div className="flex items-center gap-3">
+                              {totals.map(({ sum, currency }) => (
+                                <span
+                                  key={currency}
+                                  className={
+                                    sum >= 0
+                                      ? 'text-emerald-600 dark:text-emerald-400'
+                                      : 'text-destructive'
+                                  }
+                                >
+                                  {sum >= 0 ? '+' : ''}
+                                  {sum.toLocaleString(undefined, {
+                                    style: 'currency',
+                                    currency,
+                                  })}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                           <div className="divide-y">
                             {grouped[dateLabel].map((tx) => {
@@ -192,7 +223,8 @@ export default function TransactionsPage() {
                             })}
                           </div>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )
                 })()}
