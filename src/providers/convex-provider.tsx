@@ -1,4 +1,11 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { RedirectToSignIn, useAuth } from "@clerk/clerk-react";
+import {
+  Authenticated,
+  AuthLoading,
+  ConvexReactClient,
+  Unauthenticated,
+} from "convex/react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
 
 const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
 
@@ -9,5 +16,15 @@ if (!CONVEX_URL) {
 const convex = new ConvexReactClient(CONVEX_URL);
 
 export function AppConvexProvider({ children }: { children: React.ReactNode }) {
-  return <ConvexProvider client={convex}>{children}</ConvexProvider>;
+  return (
+    <ConvexProviderWithClerk useAuth={useAuth} client={convex}>
+      <AuthLoading>
+        <div>Loading auth...</div>
+      </AuthLoading>
+      <Unauthenticated>
+        <RedirectToSignIn />
+      </Unauthenticated>
+      <Authenticated>{children}</Authenticated>
+    </ConvexProviderWithClerk>
+  );
 }
