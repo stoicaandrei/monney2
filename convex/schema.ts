@@ -31,11 +31,17 @@ const currencyValidator = v.union(
 )
 
 export default defineSchema({
+  users: defineTable({
+    name: v.string(),
+    tokenIdentifier: v.string(),
+  }).index('by_token', ['tokenIdentifier']),
+
   wallets: defineTable({
+    userId: v.id('users'),
     name: v.string(),
     currency: currencyValidator,
     color: walletColorValidator,
     icon: walletIconValidator,
     totalAmount: v.number(),
-  }),
+  }).index('by_userId', ['userId']),
 })

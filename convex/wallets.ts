@@ -1,5 +1,6 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
+import { getCurrentUser } from './users'
 
 const walletIconValidator = v.union(
   v.literal('wallet'),
@@ -40,7 +41,12 @@ const walletFormValidator = {
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const docs = await ctx.db.query('wallets').collect()
+    const user = await getCurrentUser(ctx)
+    if (!user) return []
+    const docs = await ctx.db
+      .query('wallets')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect()
     return docs.map((doc) => ({
       id: doc._id as string,
       name: doc.name,
@@ -55,7 +61,10 @@ export const list = query({
 export const create = mutation({
   args: walletFormValidator,
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
     const id = await ctx.db.insert('wallets', {
+      userId: user._id,
       name: args.name,
       currency: args.currency,
       color: args.color,
@@ -84,18 +93,23 @@ export const update = mutation({
     icon: walletIconValidator,
   },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
     const { id, name, currency, color, icon } = args
-    const data = { name, currency, color, icon }
-    await ctx.db.patch(id, data)
     const doc = await ctx.db.get(id)
     if (!doc) throw new Error('Wallet not found')
+    if (doc.userId !== user._id) throw new Error('Unauthorized')
+    const data = { name, currency, color, icon }
+    await ctx.db.patch(id, data)
+    const updatedDoc = await ctx.db.get(id)
+    if (!updatedDoc) throw new Error('Wallet not found')
     return {
-      id: doc._id as string,
-      name: doc.name,
-      currency: doc.currency,
-      color: doc.color,
-      icon: doc.icon,
-      totalAmount: doc.totalAmount,
+      id: updatedDoc._id as string,
+      name: updatedDoc.name,
+      currency: updatedDoc.currency,
+      color: updatedDoc.color,
+      icon: updatedDoc.icon,
+      totalAmount: updatedDoc.totalAmount,
     }
   },
 })
