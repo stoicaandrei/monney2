@@ -42,6 +42,6 @@ export default defineSchema({
     currency: currencyValidator,
     color: walletColorValidator,
     icon: walletIconValidator,
-    totalAmount: v.number(),
+    initialAmount: v.number(),
   }).index('by_userId', ['userId']),
 })

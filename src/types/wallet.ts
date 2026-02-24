@@ -32,7 +32,7 @@ export interface Wallet {
   currency: (typeof CURRENCIES)[number]['id']
   color: (typeof WALLET_COLORS)[number]['id']
   icon: WalletIconId
-  totalAmount: number
+  initialAmount: number
 }
 
 export interface WalletFormData {
@@ -40,4 +40,5 @@ export interface WalletFormData {
   currency: (typeof CURRENCIES)[number]['id']
   color: (typeof WALLET_COLORS)[number]['id']
   icon: WalletIconId
+  initialAmount: number
 }

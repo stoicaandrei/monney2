@@ -28,3 +28,18 @@ export function formatCurrency(
   const spacer = sym.length > 1 ? ' ' : ''
   return `${sign}${sym}${spacer}${formatted}`
 }
+
+/** Format a number for display in a currency input (locale-aware, 2 decimals) */
+export function formatCurrencyInput(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+/** Parse a string input into a number (handles locale formatting) */
+export function parseCurrencyInput(value: string): number {
+  const cleaned = value.replace(/[^\d.-]/g, '')
+  const parsed = parseFloat(cleaned)
+  return Number.isNaN(parsed) ? 0 : parsed
+}

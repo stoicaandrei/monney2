@@ -1,13 +1,8 @@
 import { RedirectToSignIn, useAuth } from "@clerk/clerk-react";
-import {
-  Authenticated,
-  AuthLoading,
-  ConvexReactClient,
-  Unauthenticated,
-  useQuery,
-} from "convex/react";
+import { ConvexReactClient, useConvexAuth, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useStoreUserEffect } from "@/hooks/use-store-user";
+import { LoadingScreen } from "@/components/loading-screen";
 import { api } from "../../convex/_generated/api";
 
 const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
@@ -18,10 +13,20 @@ if (!CONVEX_URL) {
 
 const convex = new ConvexReactClient(CONVEX_URL);
 
-function AuthenticatedContent({ children }: { children: React.ReactNode }) {
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { isLoading: isAuthLoading, isAuthenticated } = useConvexAuth();
   useStoreUserEffect();
   const user = useQuery(api.users.getMyUser);
-  if (!user) return <div>Loading user...</div>;
+
+  const isUserLoading = isAuthenticated && !user;
+
+  if (isAuthLoading || isUserLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <RedirectToSignIn />;
+  }
 
   return <>{children}</>;
 }
@@ -29,15 +34,7 @@ function AuthenticatedContent({ children }: { children: React.ReactNode }) {
 export function AppConvexProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConvexProviderWithClerk useAuth={useAuth} client={convex}>
-      <AuthLoading>
-        <div>Loading auth...</div>
-      </AuthLoading>
-      <Unauthenticated>
-        <RedirectToSignIn />
-      </Unauthenticated>
-      <Authenticated>
-        <AuthenticatedContent>{children}</AuthenticatedContent>
-      </Authenticated>
+      <AuthGate>{children}</AuthGate>
     </ConvexProviderWithClerk>
   );
 }

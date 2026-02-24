@@ -36,6 +36,7 @@ const walletFormValidator = {
   currency: currencyValidator,
   color: walletColorValidator,
   icon: walletIconValidator,
+  initialAmount: v.number(),
 }
 
 export const list = query({
@@ -53,7 +54,7 @@ export const list = query({
       currency: doc.currency,
       color: doc.color,
       icon: doc.icon,
-      totalAmount: doc.totalAmount,
+      initialAmount: doc.initialAmount,
     }))
   },
 })
@@ -69,7 +70,7 @@ export const create = mutation({
       currency: args.currency,
       color: args.color,
       icon: args.icon,
-      totalAmount: 0,
+      initialAmount: args.initialAmount,
     })
     const doc = await ctx.db.get(id)
     if (!doc) throw new Error('Failed to create wallet')
@@ -79,7 +80,7 @@ export const create = mutation({
       currency: doc.currency,
       color: doc.color,
       icon: doc.icon,
-      totalAmount: doc.totalAmount,
+      initialAmount: doc.initialAmount,
     }
   },
 })
@@ -91,15 +92,16 @@ export const update = mutation({
     currency: currencyValidator,
     color: walletColorValidator,
     icon: walletIconValidator,
+    initialAmount: v.number(),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx)
     if (!user) throw new Error('Not authenticated')
-    const { id, name, currency, color, icon } = args
+    const { id, name, currency, color, icon, initialAmount } = args
     const doc = await ctx.db.get(id)
     if (!doc) throw new Error('Wallet not found')
     if (doc.userId !== user._id) throw new Error('Unauthorized')
-    const data = { name, currency, color, icon }
+    const data = { name, currency, color, icon, initialAmount }
     await ctx.db.patch(id, data)
     const updatedDoc = await ctx.db.get(id)
     if (!updatedDoc) throw new Error('Wallet not found')
@@ -109,7 +111,7 @@ export const update = mutation({
       currency: updatedDoc.currency,
       color: updatedDoc.color,
       icon: updatedDoc.icon,
-      totalAmount: updatedDoc.totalAmount,
+      initialAmount: updatedDoc.initialAmount,
     }
   },
 })

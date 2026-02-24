@@ -17,6 +17,12 @@ import {
   FieldError,
 } from '@/components/ui/field'
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -33,7 +39,7 @@ import {
   type Wallet,
   type WalletFormData,
 } from '@/types/wallet'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrencyInput, parseCurrencyInput } from '@/lib/utils'
 
 interface WalletFormDialogProps {
   open: boolean
@@ -47,6 +53,7 @@ const defaultFormData: WalletFormData = {
   currency: 'USD',
   color: 'emerald',
   icon: 'wallet',
+  initialAmount: 0,
 }
 
 export function WalletFormDialog({
@@ -60,6 +67,8 @@ export function WalletFormDialog({
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof WalletFormData, string>>
   >({})
+  const [amountInputValue, setAmountInputValue] = React.useState('')
+  const [isAmountFocused, setIsAmountFocused] = React.useState(false)
 
   const isEditing = !!wallet
 
@@ -71,9 +80,12 @@ export function WalletFormDialog({
           currency: wallet.currency,
           color: wallet.color,
           icon: wallet.icon,
+          initialAmount: wallet.initialAmount,
         })
+        setAmountInputValue(formatCurrencyInput(wallet.initialAmount))
       } else {
         setFormData(defaultFormData)
+        setAmountInputValue(formatCurrencyInput(0))
       }
       setErrors({})
     }
@@ -122,6 +134,61 @@ export function WalletFormDialog({
               />
               <FieldError
                 errors={errors.name ? [{ message: errors.name }] : undefined}
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel>Initial amount</FieldLabel>
+              <InputGroup>
+                <InputGroupAddon>
+                  <InputGroupText>
+                    {CURRENCIES.find((c) => c.id === formData.currency)
+                      ?.symbol ?? formData.currency}
+                  </InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={
+                    isAmountFocused
+                      ? amountInputValue
+                      : formatCurrencyInput(formData.initialAmount)
+                  }
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    setAmountInputValue(raw)
+                    const parsed = parseCurrencyInput(raw)
+                    setFormData((prev) => ({ ...prev, initialAmount: parsed }))
+                    setErrors((prev) => ({ ...prev, initialAmount: undefined }))
+                  }}
+                  onFocus={() => {
+                    setIsAmountFocused(true)
+                    setAmountInputValue(
+                      formData.initialAmount === 0
+                        ? ''
+                        : String(formData.initialAmount),
+                    )
+                  }}
+                  onBlur={() => {
+                    setIsAmountFocused(false)
+                    setAmountInputValue(
+                      formatCurrencyInput(formData.initialAmount),
+                    )
+                  }}
+                  aria-invalid={!!errors.initialAmount}
+                  autoComplete="off"
+                  data-1p-ignore
+                  data-lpignore="true"
+                  className="tabular-nums"
+                />
+              </InputGroup>
+              <FieldError
+                errors={
+                  errors.initialAmount
+                    ? [{ message: errors.initialAmount }]
+                    : undefined
+                }
               />
             </Field>
 
