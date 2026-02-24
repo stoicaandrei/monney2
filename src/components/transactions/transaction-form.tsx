@@ -113,6 +113,7 @@ export function TransactionForm({
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof TransactionFormData, string>>
   >({})
+  const categoryInputId = 'transaction-form-category-input'
 
   const wallets = useQuery(api.wallets.list) ?? []
   const expenseCategories = useQuery(api.categories.list, { type: 'expense' }) ?? []
@@ -222,9 +223,14 @@ export function TransactionForm({
       } else {
         setFormData((prev) => ({
           ...prev,
+          amount: '',
+          note: '',
           tagIds: [],
           date: formatDateForInput(new Date()),
         }))
+        requestAnimationFrame(() => {
+          document.getElementById(categoryInputId)?.focus()
+        })
       }
     } catch {
       // Let parent handle errors (e.g. toast)
@@ -317,6 +323,7 @@ export function TransactionForm({
               }}
             >
               <ComboboxInput
+                id={categoryInputId}
                 className="w-full"
                 placeholder="Search or select category"
                 aria-invalid={!!errors.categoryId}
