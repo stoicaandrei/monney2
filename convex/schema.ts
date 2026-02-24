@@ -61,4 +61,15 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_userId_type', ['userId', 'type'])
     .index('by_parentId', ['parentId']),
+
+  transactions: defineTable({
+    userId: v.id('users'),
+    walletId: v.id('wallets'),
+    categoryId: v.id('categories'),
+    amount: v.number(), // positive = income, negative = expense
+    note: v.optional(v.string()),
+    date: v.number(), // timestamp in ms
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_date', ['userId', 'date']),
 })

@@ -39,7 +39,6 @@ const data = {
       title: "Transactions",
       url: "/transactions",
       icon: <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} />,
-      disabled: true,
     },
     {
       title: "Wallets",
