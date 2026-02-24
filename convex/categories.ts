@@ -57,6 +57,13 @@ export const create = mutation({
           c.parentId === args.parentId)
     )
 
+    const isDuplicate = siblings.some(
+      (s) => s.name.toLowerCase().trim() === args.name.toLowerCase().trim()
+    )
+    if (isDuplicate) {
+      throw new Error('A category with this name already exists')
+    }
+
     const maxOrder =
       siblings.length > 0
         ? Math.max(...siblings.map((s) => s.order))
@@ -97,6 +104,33 @@ export const update = mutation({
     const doc = await ctx.db.get(id)
     if (!doc) throw new Error('Category not found')
     if (doc.userId !== user._id) throw new Error('Unauthorized')
+
+    if (updates.name !== undefined) {
+      const allOfType = await ctx.db
+        .query('categories')
+        .withIndex('by_userId_type', (q) =>
+          q.eq('userId', user._id).eq('type', doc.type)
+        )
+        .collect()
+
+      const siblings = allOfType.filter(
+        (c) =>
+          (c.parentId === undefined && doc.parentId === undefined) ||
+          (c.parentId !== undefined &&
+            doc.parentId !== undefined &&
+            c.parentId === doc.parentId)
+      )
+
+      const isDuplicate = siblings.some(
+        (s) =>
+          s._id !== id &&
+          s.name.toLowerCase().trim() === updates.name!.toLowerCase().trim()
+      )
+      if (isDuplicate) {
+        throw new Error('A category with this name already exists')
+      }
+    }
+
     const patch: Record<string, unknown> = {}
     if (updates.name !== undefined) patch.name = updates.name
     if (updates.color !== undefined) patch.color = updates.color

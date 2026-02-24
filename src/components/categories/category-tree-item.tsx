@@ -17,6 +17,7 @@ import {
   Edit02Icon,
   Delete02Icon,
   DragDropVerticalIcon,
+  Add01Icon,
 } from '@hugeicons/core-free-icons'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +26,7 @@ import './category-tree.css'
 export interface CategoryTreeItemHandlers {
   onEdit?: (id: string) => void
   onDelete?: (id: string) => void
+  onAddSubcategory?: (id: string) => void
 }
 
 const CategoryTreeItemContext = React.createContext<CategoryTreeItemHandlers>({})
@@ -48,7 +50,7 @@ function CategoryTreeItemInner(
   }: TreeItemComponentProps<CategoryTreeValue>,
   ref: React.Ref<HTMLDivElement>
 ) {
-  const { onEdit, onDelete } = useCategoryTreeItemHandlers()
+  const { onEdit, onDelete, onAddSubcategory } = useCategoryTreeItemHandlers()
     return (
       <SimpleTreeItemWrapper
         {...props}
@@ -109,6 +111,12 @@ function CategoryTreeItemInner(
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                onClick={() => onAddSubcategory?.(item.id as string)}
+              >
+                <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="mr-2 size-4" />
+                Add subcategory
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onEdit?.(item.id as string)}
               >

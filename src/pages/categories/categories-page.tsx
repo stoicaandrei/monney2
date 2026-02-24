@@ -71,29 +71,27 @@ export default function CategoriesPage() {
     setDialogOpen(true)
   }
 
-  const handleSubmit = (
+  const handleSubmit = async (
     data: CategoryFormData,
     existingId?: string
   ) => {
     if (existingId) {
-      updateCategory({
+      await updateCategory({
         id: existingId as Id<'categories'>,
         name: data.name,
         color: data.color,
-      }).then(() => {
-        setDialogOpen(false)
-        setEditingCategory(null)
       })
+      setDialogOpen(false)
+      setEditingCategory(null)
     } else {
-      createCategory({
+      await createCategory({
         name: data.name,
         type: activeType,
         color: data.color,
         parentId: parentIdForCreate,
-      }).then(() => {
-        setDialogOpen(false)
-        setParentIdForCreate(undefined)
       })
+      setDialogOpen(false)
+      setParentIdForCreate(undefined)
     }
   }
 
@@ -125,6 +123,7 @@ export default function CategoriesPage() {
         if (cat) handleEdit(cat)
       },
       onDelete: handleDelete,
+      onAddSubcategory: (id: string) => handleCreate(id as Id<'categories'>),
     }),
     [categories]
   )
@@ -212,6 +211,8 @@ export default function CategoriesPage() {
         onOpenChange={setDialogOpen}
         category={editingCategory}
         type={activeType}
+        categories={categories}
+        parentId={parentIdForCreate}
         onSubmit={handleSubmit}
       />
     </SidebarProvider>

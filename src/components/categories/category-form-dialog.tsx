@@ -29,7 +29,9 @@ interface CategoryFormDialogProps {
   onOpenChange: (open: boolean) => void
   category?: Category | null
   type: CategoryType
-  onSubmit: (data: CategoryFormData, existingId?: string) => void
+  categories?: Category[]
+  parentId?: string
+  onSubmit: (data: CategoryFormData, existingId?: string) => void | Promise<void>
 }
 
 const defaultFormData: CategoryFormData = {
@@ -43,6 +45,8 @@ export function CategoryFormDialog({
   onOpenChange,
   category,
   type,
+  categories = [],
+  parentId,
   onSubmit,
 }: CategoryFormDialogProps) {
   const [formData, setFormData] =
@@ -50,6 +54,7 @@ export function CategoryFormDialog({
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof CategoryFormData, string>>
   >({})
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const isEditing = !!category
 
@@ -72,12 +77,29 @@ export function CategoryFormDialog({
     }
   }, [open, category, type])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors: Partial<Record<keyof CategoryFormData, string>> = {}
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required'
+    } else {
+      const effectiveParentId = category?.parentId ?? parentId
+      const siblings = categories.filter((c) => {
+        const sameParent =
+          (c.parentId === undefined && effectiveParentId === undefined) ||
+          (c.parentId !== undefined &&
+            effectiveParentId !== undefined &&
+            c.parentId === effectiveParentId)
+        return sameParent && c.id !== category?.id
+      })
+      const isDuplicate = siblings.some(
+        (s) =>
+          s.name.toLowerCase().trim() === formData.name.toLowerCase().trim()
+      )
+      if (isDuplicate) {
+        newErrors.name = 'A category with this name already exists'
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -85,8 +107,19 @@ export function CategoryFormDialog({
       return
     }
 
-    onSubmit(formData, category?.id)
-    onOpenChange(false)
+    setIsSubmitting(true)
+    setErrors({})
+    try {
+      await onSubmit(formData, category?.id)
+      onOpenChange(false)
+    } catch (err) {
+      setErrors({
+        name:
+          err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -134,8 +167,8 @@ export function CategoryFormDialog({
             >
               Cancel
             </Button>
-            <Button type="submit">
-              {isEditing ? 'Save changes' : 'Create category'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : isEditing ? 'Save changes' : 'Create category'}
             </Button>
           </DialogFooter>
         </form>
