@@ -62,6 +62,13 @@ export default defineSchema({
     .index('by_userId_type', ['userId', 'type'])
     .index('by_parentId', ['parentId']),
 
+  tags: defineTable({
+    userId: v.id('users'),
+    name: v.string(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_name', ['userId', 'name']),
+
   transactions: defineTable({
     userId: v.id('users'),
     walletId: v.id('wallets'),
@@ -69,6 +76,7 @@ export default defineSchema({
     amount: v.number(), // positive = income, negative = expense
     note: v.optional(v.string()),
     date: v.number(), // timestamp in ms
+    tagIds: v.optional(v.array(v.id('tags'))),
   })
     .index('by_userId', ['userId'])
     .index('by_userId_date', ['userId', 'date']),

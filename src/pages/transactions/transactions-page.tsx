@@ -40,7 +40,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { TagCombobox } from '@/components/transactions/tag-combobox'
 
 function formatDateForInput(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -66,6 +66,7 @@ const defaultFormData = {
   amount: '',
   note: '',
   date: formatDateForInput(new Date()),
+  tagIds: [] as Id<'tags'>[],
 }
 
 export default function TransactionsPage() {
@@ -90,6 +91,7 @@ export default function TransactionsPage() {
   const wallets = useQuery(api.wallets.list) ?? []
   const expenseCategories = useQuery(api.categories.list, { type: 'expense' }) ?? []
   const incomeCategories = useQuery(api.categories.list, { type: 'income' }) ?? []
+  const tags = useQuery(api.tags.list) ?? []
   const transactions = useQuery(api.transactions.list, {}) ?? []
   const createTransaction = useMutation(api.transactions.create)
 
@@ -181,6 +183,8 @@ export default function TransactionsPage() {
       amount: amountNum,
       note: formData.note.trim() || undefined,
       date: dateMs,
+      tagIds:
+        formData.tagIds.length > 0 ? formData.tagIds : undefined,
     }).then(() => {
       if (!keepFormOpen) {
         setFormData({
@@ -190,6 +194,7 @@ export default function TransactionsPage() {
       } else {
         setFormData((prev) => ({
           ...prev,
+          tagIds: [],
           date: formatDateForInput(new Date()),
         }))
       }
@@ -516,6 +521,20 @@ export default function TransactionsPage() {
                           autoComplete="off"
                         />
                       </Field>
+
+                      <Field className="sm:col-span-2">
+                        <FieldLabel>Tags</FieldLabel>
+                        <TagCombobox
+                          value={formData.tagIds}
+                          onChange={(tagIds) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              tagIds,
+                            }))
+                          }
+                          placeholder="Search or create tags"
+                        />
+                      </Field>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4">
@@ -560,6 +579,18 @@ export default function TransactionsPage() {
                                 {wallet ? `${wallet.name} (${wallet.currency})` : '—'} •{' '}
                                 {new Date(tx.date).toLocaleDateString()}
                                 {tx.note && ` • ${tx.note}`}
+                                {(tx.tagIds?.length ?? 0) > 0 && (
+                                  <>
+                                    {' • '}
+                                    {(tx.tagIds ?? [])
+                                      .map(
+                                        (id: Id<'tags'>) =>
+                                          tags.find((t: { id: Id<'tags'>; name: string }) => t.id === id)?.name ??
+                                          '—'
+                                      )
+                                      .join(', ')}
+                                  </>
+                                )}
                               </span>
                             </div>
                             <span

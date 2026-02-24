@@ -22,6 +22,7 @@ export const list = query({
       amount: doc.amount,
       note: doc.note,
       date: doc.date,
+      tagIds: doc.tagIds ?? [],
     }));
   },
 });
@@ -33,6 +34,7 @@ export const create = mutation({
     amount: v.number(),
     note: v.optional(v.string()),
     date: v.number(),
+    tagIds: v.optional(v.array(v.id("tags"))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -48,6 +50,14 @@ export const create = mutation({
       throw new Error("Category not found");
     }
 
+    const tagIds = args.tagIds ?? [];
+    for (const tagId of tagIds) {
+      const tag = await ctx.db.get(tagId);
+      if (!tag || tag.userId !== user._id) {
+        throw new Error("Tag not found");
+      }
+    }
+
     // User enters positive amount; we negate for expense categories
     const amount =
       category.type === "expense"
@@ -61,6 +71,7 @@ export const create = mutation({
       amount,
       note: args.note,
       date: args.date,
+      tagIds: tagIds.length > 0 ? tagIds : undefined,
     });
 
     const doc = await ctx.db.get(id);
@@ -72,6 +83,7 @@ export const create = mutation({
       amount: doc.amount,
       note: doc.note,
       date: doc.date,
+      tagIds: doc.tagIds ?? [],
     };
   },
 });

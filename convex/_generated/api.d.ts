@@ -11,6 +11,7 @@
 import type * as categories from "../categories.js";
 import type * as defaultCategories from "../defaultCategories.js";
 import type * as onboarding from "../onboarding.js";
+import type * as tags from "../tags.js";
 import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
 import type * as wallets from "../wallets.js";
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   defaultCategories: typeof defaultCategories;
   onboarding: typeof onboarding;
+  tags: typeof tags;
   transactions: typeof transactions;
   users: typeof users;
   wallets: typeof wallets;
