@@ -142,6 +142,11 @@ export default function WalletsPage() {
               </div>
             </div>
           </div>
+          <footer className="border-t px-4 py-3 lg:px-6">
+            <p className="text-muted-foreground text-xs">
+              TODO: Add unit link investment accounts functionality
+            </p>
+          </footer>
         </div>
       </SidebarInset>
 
