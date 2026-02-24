@@ -1,59 +1,54 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import { AppSidebar } from '@/components/layout/sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import * as React from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
+} from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { CURRENCIES } from '@/types/wallet'
-import type { WalletFormData } from '@/types/wallet'
-import { toast } from 'sonner'
+} from "@/components/ui/select";
+import { CURRENCIES } from "@/types/wallet";
+import type { WalletFormData } from "@/types/wallet";
+import { toast } from "sonner";
 
-const DEFAULT_CURRENCY = 'EUR' as const
+const DEFAULT_CURRENCY = "EUR" as const;
 
 export default function SettingsPage() {
-  const preferences = useQuery(api.userPreferences.get)
+  const preferences = useQuery(api.userPreferences.get);
   const updateDefaultCurrency = useMutation(
     api.userPreferences.updateDefaultCurrency,
-  )
+  );
 
-  const defaultCurrency =
-    preferences?.defaultCurrency ?? DEFAULT_CURRENCY
+  const defaultCurrency = preferences?.defaultCurrency ?? DEFAULT_CURRENCY;
 
   const handleCurrencyChange = (value: string) => {
     updateDefaultCurrency({
-      defaultCurrency: value as WalletFormData['currency'],
+      defaultCurrency: value as WalletFormData["currency"],
     }).then(() => {
-      toast.success('Default currency updated')
-    })
-  }
+      toast.success("Default currency updated");
+    });
+  };
 
   return (
     <SidebarProvider
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
@@ -109,5 +104,5 @@ export default function SettingsPage() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

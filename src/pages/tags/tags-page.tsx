@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { AppSidebar } from '@/components/layout/sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import * as React from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,67 +24,67 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { TagFormDialog } from '@/components/tags/tag-form-dialog'
-import { HugeiconsIcon } from '@hugeicons/react'
+} from "@/components/ui/alert-dialog";
+import { TagFormDialog } from "@/components/tags/tag-form-dialog";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
   MoreVerticalCircle01Icon,
   Edit02Icon,
   Delete02Icon,
-} from '@hugeicons/core-free-icons'
-type Tag = { id: Id<'tags'>; name: string }
+} from "@hugeicons/core-free-icons";
+type Tag = { id: Id<"tags">; name: string };
 
 export default function TagsPage() {
-  const tags = useQuery(api.tags.list) ?? []
-  const createTag = useMutation(api.tags.create)
-  const updateTag = useMutation(api.tags.update)
-  const removeTag = useMutation(api.tags.remove)
+  const tags = useQuery(api.tags.list) ?? [];
+  const createTag = useMutation(api.tags.create);
+  const updateTag = useMutation(api.tags.update);
+  const removeTag = useMutation(api.tags.remove);
 
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [editingTag, setEditingTag] = React.useState<Tag | null>(null)
-  const [deleteTag, setDeleteTag] = React.useState<Tag | null>(null)
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editingTag, setEditingTag] = React.useState<Tag | null>(null);
+  const [deleteTag, setDeleteTag] = React.useState<Tag | null>(null);
 
   const handleCreate = () => {
-    setEditingTag(null)
-    setDialogOpen(true)
-  }
+    setEditingTag(null);
+    setDialogOpen(true);
+  };
 
   const handleEdit = (tag: Tag) => {
-    setEditingTag(tag)
-    setDialogOpen(true)
-  }
+    setEditingTag(tag);
+    setDialogOpen(true);
+  };
 
-  const handleSubmit = (name: string, existingId?: Id<'tags'>) => {
+  const handleSubmit = (name: string, existingId?: Id<"tags">) => {
     if (existingId) {
       updateTag({ id: existingId, name }).then(() => {
-        setDialogOpen(false)
-        setEditingTag(null)
-      })
+        setDialogOpen(false);
+        setEditingTag(null);
+      });
     } else {
       createTag({ name }).then(() => {
-        setDialogOpen(false)
-      })
+        setDialogOpen(false);
+      });
     }
-  }
+  };
 
   const handleDeleteClick = (tag: Tag) => {
-    setDeleteTag(tag)
-  }
+    setDeleteTag(tag);
+  };
 
   const handleDeleteConfirm = () => {
     if (deleteTag) {
-      removeTag({ id: deleteTag.id })
-      setDeleteTag(null)
+      removeTag({ id: deleteTag.id });
+      setDeleteTag(null);
     }
-  }
+  };
 
   return (
     <SidebarProvider
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
@@ -117,10 +117,7 @@ export default function TagsPage() {
                         key={tag.id}
                         className="flex items-center gap-1 rounded-none border border-input bg-background px-3 py-2"
                       >
-                        <Badge
-                          variant="secondary"
-                          className="font-normal"
-                        >
+                        <Badge variant="secondary" className="font-normal">
                           {tag.name}
                         </Badge>
                         <DropdownMenu>
@@ -139,9 +136,7 @@ export default function TagsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(tag)}
-                            >
+                            <DropdownMenuItem onClick={() => handleEdit(tag)}>
                               <HugeiconsIcon
                                 icon={Edit02Icon}
                                 strokeWidth={2}
@@ -194,8 +189,8 @@ export default function TagsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete tag</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteTag?.name}&quot;? This
-              will remove the tag from all transactions that use it.
+              Are you sure you want to delete &quot;{deleteTag?.name}&quot;?
+              This will remove the tag from all transactions that use it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -210,5 +205,5 @@ export default function TagsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
-  )
+  );
 }

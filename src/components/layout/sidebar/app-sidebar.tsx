@@ -100,7 +100,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <Link to="/">
+              <Link to="/dashboard">
                 <HugeiconsIcon
                   icon={CommandIcon}
                   strokeWidth={2}

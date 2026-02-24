@@ -1,111 +1,108 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { AppSidebar } from '@/components/layout/sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SortableTree } from 'dnd-kit-sortable-tree'
-import type { TreeItems } from 'dnd-kit-sortable-tree'
+import * as React from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SortableTree } from "dnd-kit-sortable-tree";
+import type { TreeItems } from "dnd-kit-sortable-tree";
 import {
   CategoryTreeItemComponent,
   CategoryTreeItemContext,
-} from '@/components/categories/category-tree-item'
-import { CategoryFormDialog } from '@/components/categories/category-form-dialog'
+} from "@/components/categories/category-tree-item";
+import { CategoryFormDialog } from "@/components/categories/category-form-dialog";
 import {
   flatToTree,
   treeToFlat,
   type CategoryTreeValue,
-} from '@/lib/category-tree'
-import type { Category, CategoryFormData, CategoryType } from '@/types/category'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { Add01Icon } from '@hugeicons/core-free-icons'
+} from "@/lib/category-tree";
+import type {
+  Category,
+  CategoryFormData,
+  CategoryType,
+} from "@/types/category";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon } from "@hugeicons/core-free-icons";
 
 const CATEGORY_TABS: { id: CategoryType; label: string }[] = [
-  { id: 'income', label: 'Income' },
-  { id: 'expense', label: 'Expense' },
-]
+  { id: "income", label: "Income" },
+  { id: "expense", label: "Expense" },
+];
 
 export default function CategoriesPage() {
-  const [activeType, setActiveType] = React.useState<CategoryType>('expense')
-  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [activeType, setActiveType] = React.useState<CategoryType>("expense");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(
-    null
-  )
+    null,
+  );
   const [parentIdForCreate, setParentIdForCreate] = React.useState<
-    Id<'categories'> | undefined
-  >(undefined)
+    Id<"categories"> | undefined
+  >(undefined);
 
-  const categories = useQuery(api.categories.list, { type: activeType }) ?? []
-  const createCategory = useMutation(api.categories.create)
-  const updateCategory = useMutation(api.categories.update)
-  const removeCategory = useMutation(api.categories.remove)
-  const reorderCategories = useMutation(api.categories.reorder)
+  const categories = useQuery(api.categories.list, { type: activeType }) ?? [];
+  const createCategory = useMutation(api.categories.create);
+  const updateCategory = useMutation(api.categories.update);
+  const removeCategory = useMutation(api.categories.remove);
+  const reorderCategories = useMutation(api.categories.reorder);
 
-  const treeItems = React.useMemo(
-    () => flatToTree(categories),
-    [categories]
-  )
+  const treeItems = React.useMemo(() => flatToTree(categories), [categories]);
 
-  const [localItems, setLocalItems] = React.useState<TreeItems<CategoryTreeValue>>(
-    treeItems
-  )
+  const [localItems, setLocalItems] =
+    React.useState<TreeItems<CategoryTreeValue>>(treeItems);
 
   React.useEffect(() => {
-    setLocalItems(treeItems)
-  }, [treeItems])
+    setLocalItems(treeItems);
+  }, [treeItems]);
 
-  const handleCreate = (parentId?: Id<'categories'>) => {
-    setEditingCategory(null)
-    setParentIdForCreate(parentId)
-    setDialogOpen(true)
-  }
+  const handleCreate = (parentId?: Id<"categories">) => {
+    setEditingCategory(null);
+    setParentIdForCreate(parentId);
+    setDialogOpen(true);
+  };
 
   const handleEdit = (category: Category) => {
-    setEditingCategory(category)
-    setParentIdForCreate(undefined)
-    setDialogOpen(true)
-  }
+    setEditingCategory(category);
+    setParentIdForCreate(undefined);
+    setDialogOpen(true);
+  };
 
-  const handleSubmit = async (
-    data: CategoryFormData,
-    existingId?: string
-  ) => {
+  const handleSubmit = async (data: CategoryFormData, existingId?: string) => {
     if (existingId) {
       await updateCategory({
-        id: existingId as Id<'categories'>,
+        id: existingId as Id<"categories">,
         name: data.name,
         color: data.color,
-      })
-      setDialogOpen(false)
-      setEditingCategory(null)
+      });
+      setDialogOpen(false);
+      setEditingCategory(null);
     } else {
       await createCategory({
         name: data.name,
         type: activeType,
         color: data.color,
         parentId: parentIdForCreate,
-      })
-      setDialogOpen(false)
-      setParentIdForCreate(undefined)
+      });
+      setDialogOpen(false);
+      setParentIdForCreate(undefined);
     }
-  }
+  };
 
   const handleDelete = (id: string) => {
-    removeCategory({ id: id as Id<'categories'> })
-  }
+    removeCategory({ id: id as Id<"categories"> });
+  };
 
   const handleItemsChanged = (
     newItems: TreeItems<CategoryTreeValue>,
-    reason: { type: string }
+    reason: { type: string },
   ) => {
-    if (reason.type !== 'dropped') return
-    setLocalItems(newItems)
-    const updates = treeToFlat(newItems)
+    if (reason.type !== "dropped") return;
+    setLocalItems(newItems);
+    const updates = treeToFlat(newItems);
     reorderCategories({
       type: activeType,
       updates: updates.map((u) => ({
@@ -113,27 +110,27 @@ export default function CategoriesPage() {
         parentId: u.parentId,
         order: u.order,
       })),
-    })
-  }
+    });
+  };
 
   const treeHandlers = React.useMemo(
     () => ({
       onEdit: (id: string) => {
-        const cat = categories.find((c) => c.id === id)
-        if (cat) handleEdit(cat)
+        const cat = categories.find((c) => c.id === id);
+        if (cat) handleEdit(cat);
       },
       onDelete: handleDelete,
-      onAddSubcategory: (id: string) => handleCreate(id as Id<'categories'>),
+      onAddSubcategory: (id: string) => handleCreate(id as Id<"categories">),
     }),
-    [categories]
-  )
+    [categories],
+  );
 
   return (
     <SidebarProvider
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
@@ -216,5 +213,5 @@ export default function CategoriesPage() {
         onSubmit={handleSubmit}
       />
     </SidebarProvider>
-  )
+  );
 }

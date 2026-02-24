@@ -22,7 +22,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AppSidebar } from "@/components/layout/sidebar";
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ function SortableWalletCard({
       style={style}
       className={cn(
         "cursor-grab active:cursor-grabbing touch-none",
-        isDragging && "z-50 cursor-grabbing opacity-80"
+        isDragging && "z-50 cursor-grabbing opacity-80",
       )}
       {...attributes}
       {...listeners}
@@ -73,7 +73,7 @@ function SortableWalletCard({
 export default function WalletsPage() {
   const walletsFromQuery = useQuery(api.wallets.list) ?? [];
   const preferences = useQuery(api.userPreferences.get);
-  const defaultCurrency = preferences?.defaultCurrency ?? 'EUR';
+  const defaultCurrency = preferences?.defaultCurrency ?? "EUR";
   const isPending = false;
   const error = null;
 
@@ -91,13 +91,15 @@ export default function WalletsPage() {
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
-    useSensor(KeyboardSensor)
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor),
   );
 
   const walletIds = React.useMemo<UniqueIdentifier[]>(
     () => wallets.map((w) => w.id),
-    [wallets]
+    [wallets],
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -111,7 +113,10 @@ export default function WalletsPage() {
     const reordered = arrayMove(wallets, oldIndex, newIndex);
     setOptimisticWallets(reordered);
     reorderWallets({
-      updates: reordered.map((w, i) => ({ id: w.id as Id<"wallets">, order: i })),
+      updates: reordered.map((w, i) => ({
+        id: w.id as Id<"wallets">,
+        order: i,
+      })),
     }).finally(() => setOptimisticWallets(null));
   };
 
@@ -219,21 +224,21 @@ export default function WalletsPage() {
                         ))}
                       </SortableContext>
                       <button
-                      type="button"
-                      onClick={handleCreate}
-                      className={cn(
-                        "flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-input",
-                        "bg-muted/30 transition-colors hover:border-primary/50 hover:bg-muted/50",
-                        "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <HugeiconsIcon
-                        icon={Add01Icon}
-                        strokeWidth={2}
-                        className="size-8"
-                      />
-                      <span className="text-sm font-medium">Add wallet</span>
-                    </button>
+                        type="button"
+                        onClick={handleCreate}
+                        className={cn(
+                          "flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-input",
+                          "bg-muted/30 transition-colors hover:border-primary/50 hover:bg-muted/50",
+                          "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <HugeiconsIcon
+                          icon={Add01Icon}
+                          strokeWidth={2}
+                          className="size-8"
+                        />
+                        <span className="text-sm font-medium">Add wallet</span>
+                      </button>
                     </div>
                   </DndContext>
                 )}

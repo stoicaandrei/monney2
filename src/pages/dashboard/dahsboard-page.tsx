@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
+import * as React from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   Area,
   AreaChart,
@@ -13,71 +13,73 @@ import {
   PieChart,
   XAxis,
   YAxis,
-} from 'recharts'
-import { AppSidebar } from '@/components/layout/sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+} from "recharts";
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart'
+} from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Receipt } from 'lucide-react'
-import { HugeiconsIcon } from '@hugeicons/react'
+} from "@/components/ui/select";
+import { Receipt } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ChartUpIcon,
   ChartDownIcon,
   Wallet01Icon,
-} from '@hugeicons/core-free-icons'
+} from "@hugeicons/core-free-icons";
 
 const chartConfig = {
   income: {
-    label: 'Income',
-    color: 'oklch(0.65 0.15 160)',
+    label: "Income",
+    color: "oklch(0.65 0.15 160)",
   },
   expenses: {
-    label: 'Expenses',
-    color: 'oklch(0.65 0.18 25)',
+    label: "Expenses",
+    color: "oklch(0.65 0.18 25)",
   },
   value: {
-    label: 'Amount',
-    color: 'hsl(var(--chart-1))',
+    label: "Amount",
+    color: "hsl(var(--chart-1))",
   },
   cumulativeIncome: {
-    label: 'Cumulative Income',
-    color: 'oklch(0.65 0.15 160)',
+    label: "Cumulative Income",
+    color: "oklch(0.65 0.15 160)",
   },
   cumulativeExpenses: {
-    label: 'Cumulative Expenses',
-    color: 'oklch(0.65 0.18 25)',
+    label: "Cumulative Expenses",
+    color: "oklch(0.65 0.18 25)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export default function DashboardPage() {
-  const [days, setDays] = React.useState(30)
-  const stats = useQuery(api.dashboard.stats, { days })
-  const dailyBreakdown = useQuery(api.dashboard.dailyBreakdown, { days })
-  const expensesByCategory = useQuery(api.dashboard.expensesByCategory, { days })
-  const wallets = useQuery(api.wallets.list) ?? []
-  const currency = wallets[0]?.currency ?? 'USD'
+  const [days, setDays] = React.useState(30);
+  const stats = useQuery(api.dashboard.stats, { days });
+  const dailyBreakdown = useQuery(api.dashboard.dailyBreakdown, { days });
+  const expensesByCategory = useQuery(api.dashboard.expensesByCategory, {
+    days,
+  });
+  const wallets = useQuery(api.wallets.list) ?? [];
+  const currency = wallets[0]?.currency ?? "USD";
 
   const formatCurrency = (value: number) =>
-    value.toLocaleString(undefined, { style: 'currency', currency })
+    value.toLocaleString(undefined, { style: "currency", currency });
 
   const pieData = React.useMemo(
     () =>
@@ -85,15 +87,15 @@ export default function DashboardPage() {
         ...item,
         fill: item.color,
       })),
-    [expensesByCategory]
-  )
+    [expensesByCategory],
+  );
 
   return (
     <SidebarProvider
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
@@ -114,7 +116,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {stats ? formatCurrency(stats.income) : '—'}
+                  {stats ? formatCurrency(stats.income) : "—"}
                 </CardTitle>
                 <p className="text-muted-foreground text-xs">
                   Last {days} days
@@ -133,7 +135,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-semibold tabular-nums text-rose-600 dark:text-rose-400">
-                  {stats ? formatCurrency(stats.expenses) : '—'}
+                  {stats ? formatCurrency(stats.expenses) : "—"}
                 </CardTitle>
                 <p className="text-muted-foreground text-xs">
                   Last {days} days
@@ -154,11 +156,11 @@ export default function DashboardPage() {
                 <CardTitle
                   className={`text-2xl font-semibold tabular-nums ${
                     stats && stats.balance >= 0
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-rose-600 dark:text-rose-400'
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
-                  {stats ? formatCurrency(stats.balance) : '—'}
+                  {stats ? formatCurrency(stats.balance) : "—"}
                 </CardTitle>
                 <p className="text-muted-foreground text-xs">
                   Income − expenses
@@ -176,7 +178,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <CardTitle className="text-2xl font-semibold tabular-nums text-violet-600 dark:text-violet-400">
-                  {stats?.transactionCount ?? '—'}
+                  {stats?.transactionCount ?? "—"}
                 </CardTitle>
                 <p className="text-muted-foreground text-xs">
                   Last {days} days
@@ -188,7 +190,10 @@ export default function DashboardPage() {
           {/* Time range selector */}
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-sm">Time range:</span>
-            <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+            <Select
+              value={String(days)}
+              onValueChange={(v) => setDays(Number(v))}
+            >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
@@ -224,9 +229,9 @@ export default function DashboardPage() {
                       axisLine={false}
                       tickMargin={8}
                       tickFormatter={(value) =>
-                        new Date(value).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
+                        new Date(value).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
                         })
                       }
                     />
@@ -243,15 +248,13 @@ export default function DashboardPage() {
                       content={
                         <ChartTooltipContent
                           labelFormatter={(value) =>
-                            new Date(value).toLocaleDateString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
+                            new Date(value).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
                             })
                           }
-                          formatter={(value) =>
-                            formatCurrency(Number(value))
-                          }
+                          formatter={(value) => formatCurrency(Number(value))}
                           indicator="dot"
                         />
                       }
@@ -292,11 +295,9 @@ export default function DashboardPage() {
                             labelFormatter={(_, payload) =>
                               payload?.[0]?.payload?.name ??
                               payload?.[0]?.name ??
-                              ''
+                              ""
                             }
-                            formatter={(value) =>
-                              formatCurrency(Number(value))
-                            }
+                            formatter={(value) => formatCurrency(Number(value))}
                             indicator="dot"
                           />
                         }
@@ -338,22 +339,20 @@ export default function DashboardPage() {
                 className="aspect-auto h-[260px] w-full"
               >
                 <AreaChart
-                  data={
-                    (dailyBreakdown ?? []).map((d, i, arr) => {
-                      let cumIncome = 0
-                      let cumExpenses = 0
-                      for (let j = 0; j <= i; j++) {
-                        cumIncome += arr[j].income
-                        cumExpenses += arr[j].expenses
-                      }
-                      return {
-                        ...d,
-                        cumulativeIncome: cumIncome,
-                        cumulativeExpenses: cumExpenses,
-                        net: cumIncome - cumExpenses,
-                      }
-                    })
-                  }
+                  data={(dailyBreakdown ?? []).map((d, i, arr) => {
+                    let cumIncome = 0;
+                    let cumExpenses = 0;
+                    for (let j = 0; j <= i; j++) {
+                      cumIncome += arr[j].income;
+                      cumExpenses += arr[j].expenses;
+                    }
+                    return {
+                      ...d,
+                      cumulativeIncome: cumIncome,
+                      cumulativeExpenses: cumExpenses,
+                      net: cumIncome - cumExpenses,
+                    };
+                  })}
                 >
                   <defs>
                     <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
@@ -394,9 +393,9 @@ export default function DashboardPage() {
                     axisLine={false}
                     tickMargin={8}
                     tickFormatter={(value) =>
-                      new Date(value).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
+                      new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
                       })
                     }
                   />
@@ -413,15 +412,13 @@ export default function DashboardPage() {
                     content={
                       <ChartTooltipContent
                         labelFormatter={(value) =>
-                          new Date(value).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
+                          new Date(value).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
                           })
                         }
-                        formatter={(value) =>
-                          formatCurrency(Number(value))
-                        }
+                        formatter={(value) => formatCurrency(Number(value))}
                         indicator="dot"
                       />
                     }
@@ -451,5 +448,5 @@ export default function DashboardPage() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

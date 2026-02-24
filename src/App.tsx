@@ -19,7 +19,7 @@ export function App() {
       <Route path="/tags" element={<TagsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/components" element={<ComponentExample />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/dashboard" />} />
     </Routes>
   );
 }
