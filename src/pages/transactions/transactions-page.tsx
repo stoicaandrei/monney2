@@ -8,85 +8,17 @@ import { AppSidebar } from '@/components/layout/sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { PenSquareIcon, Trash2 } from 'lucide-react'
+import { TransactionForm, formatDateForInput } from '@/components/transactions/transaction-form'
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-  InputGroupText,
-} from '@/components/ui/input-group'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldError,
-} from '@/components/ui/field'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CURRENCIES } from '@/types/wallet'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import { TagCombobox } from '@/components/transactions/tag-combobox'
-
-function formatDateForInput(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
-
-function formatDateDisplay(date: Date | undefined): string {
-  if (!date) return ''
-  return date.toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-function isValidDate(date: Date | undefined): boolean {
-  if (!date) return false
-  return !isNaN(date.getTime())
-}
-
-const defaultFormData = {
-  walletId: '' as Id<'wallets'> | '',
-  categoryId: '' as Id<'categories'> | '',
-  amount: '',
-  note: '',
-  date: formatDateForInput(new Date()),
-  tagIds: [] as Id<'tags'>[],
-}
+  TransactionFormDialog,
+  type TransactionForEdit,
+} from '@/components/transactions/transaction-form-dialog'
 
 export default function TransactionsPage() {
-  const [formData, setFormData] = React.useState(defaultFormData)
   const [keepFormOpen, setKeepFormOpen] = React.useState(false)
-  const [categoryType, setCategoryType] = React.useState<
-    'income' | 'expense' | 'transfer'
-  >('expense')
-  const [datePickerOpen, setDatePickerOpen] = React.useState(false)
-  const [dateDisplayValue, setDateDisplayValue] = React.useState(() =>
-    formatDateDisplay(
-      defaultFormData.date ? new Date(defaultFormData.date) : undefined
-    )
-  )
-  const [dateMonth, setDateMonth] = React.useState<Date | undefined>(() =>
-    defaultFormData.date ? new Date(defaultFormData.date) : new Date()
-  )
-  const [errors, setErrors] = React.useState<
-    Partial<Record<keyof typeof formData, string>>
-  >({})
+  const [editTransaction, setEditTransaction] =
+    React.useState<TransactionForEdit | null>(null)
 
   const wallets = useQuery(api.wallets.list) ?? []
   const expenseCategories = useQuery(api.categories.list, { type: 'expense' }) ?? []
@@ -94,111 +26,24 @@ export default function TransactionsPage() {
   const tags = useQuery(api.tags.list) ?? []
   const transactions = useQuery(api.transactions.list, {}) ?? []
   const createTransaction = useMutation(api.transactions.create)
+  const removeTransaction = useMutation(api.transactions.remove)
 
-  const walletItems = React.useMemo(
-    () =>
-      wallets.map((w) => ({
-        value: w.id,
-        label: `${w.name} (${w.currency})`,
-      })),
-    [wallets]
-  )
-
-  const categoryItems = React.useMemo(() => {
-    if (categoryType === 'expense') {
-      return expenseCategories.map((c) => ({
-        value: c.id,
-        label: c.name,
-      }))
-    }
-    if (categoryType === 'income') {
-      return incomeCategories.map((c) => ({
-        value: c.id,
-        label: c.name,
-      }))
-    }
-    return []
-  }, [categoryType, expenseCategories, incomeCategories])
-
-  React.useEffect(() => {
-    setDateDisplayValue(
-      formatDateDisplay(
-        formData.date ? new Date(formData.date) : undefined
-      )
-    )
-    setDateMonth(
-      formData.date ? new Date(formData.date) : new Date()
-    )
-  }, [formData.date])
-
-  const selectedWallet = React.useMemo(
-    () => wallets.find((w) => w.id === formData.walletId),
-    [wallets, formData.walletId]
-  )
-
-  const handleCategoryTypeChange = (value: string) => {
-    if (value === 'transfer') return
-    const newType = value as 'income' | 'expense'
-    setCategoryType(newType)
-    const idsInNewType =
-      newType === 'expense'
-        ? expenseCategories.map((c) => c.id)
-        : incomeCategories.map((c) => c.id)
-    if (
-      formData.categoryId &&
-      !idsInNewType.includes(formData.categoryId as Id<'categories'>)
-    ) {
-      setFormData((prev) => ({ ...prev, categoryId: '' as Id<'categories'> }))
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newErrors: Partial<Record<keyof typeof formData, string>> = {}
-
-    if (!formData.walletId) {
-      newErrors.walletId = 'Wallet is required'
-    }
-    if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required'
-    }
-    const amountNum = parseFloat(formData.amount)
-    if (formData.amount === '' || isNaN(amountNum) || amountNum === 0) {
-      newErrors.amount = 'Amount is required'
-    }
-    if (!formData.date) {
-      newErrors.date = 'Date is required'
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
-    const dateMs = new Date(formData.date).getTime()
-
-    createTransaction({
-      walletId: formData.walletId as Id<'wallets'>,
-      categoryId: formData.categoryId as Id<'categories'>,
+  const handleCreateSubmit = async (data: {
+    walletId: Id<'wallets'> | ''
+    categoryId: Id<'categories'> | ''
+    amount: string
+    note: string
+    date: string
+    tagIds: Id<'tags'>[]
+  }) => {
+    const amountNum = parseFloat(data.amount)
+    await createTransaction({
+      walletId: data.walletId as Id<'wallets'>,
+      categoryId: data.categoryId as Id<'categories'>,
       amount: amountNum,
-      note: formData.note.trim() || undefined,
-      date: dateMs,
-      tagIds:
-        formData.tagIds.length > 0 ? formData.tagIds : undefined,
-    }).then(() => {
-      if (!keepFormOpen) {
-        setFormData({
-          ...defaultFormData,
-          date: formatDateForInput(new Date()),
-        })
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          tagIds: [],
-          date: formatDateForInput(new Date()),
-        }))
-      }
-      setErrors({})
+      note: data.note.trim() || undefined,
+      date: new Date(data.date).getTime(),
+      tagIds: data.tagIds.length > 0 ? data.tagIds : undefined,
     })
   }
 
@@ -227,395 +72,140 @@ export default function TransactionsPage() {
                   </p>
                 </div>
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="flex flex-col gap-4 rounded-lg border p-4"
-                >
-                  <FieldGroup className="gap-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
-                      <Field>
-                        <FieldLabel>Wallet</FieldLabel>
-                        <Combobox
-                          items={walletItems}
-                          autoHighlight
-                          value={
-                            formData.walletId
-                              ? walletItems.find((w) => w.value === formData.walletId) ?? null
-                              : null
-                          }
-                          onValueChange={(v) => {
-                            const id = (v && typeof v === 'object' && 'value' in v ? v.value : v) ?? ''
-                            setFormData((prev) => ({
-                              ...prev,
-                              walletId: id as Id<'wallets'>,
-                            }))
-                            setErrors((prev) => ({ ...prev, walletId: undefined }))
-                          }}
-                        >
-                          <ComboboxInput
-                            className="w-full"
-                            placeholder="Search or select wallet"
-                            aria-invalid={!!errors.walletId}
-                          />
-                          <ComboboxContent>
-                            <ComboboxEmpty>No wallets found.</ComboboxEmpty>
-                            <ComboboxList>
-                              {(item) => (
-                                <ComboboxItem key={item.value} value={item}>
-                                  {item.label}
-                                </ComboboxItem>
-                              )}
-                            </ComboboxList>
-                          </ComboboxContent>
-                        </Combobox>
-                        <FieldError
-                          errors={
-                            errors.walletId
-                              ? [{ message: errors.walletId }]
-                              : undefined
-                          }
-                        />
-                      </Field>
+                <div className="flex flex-col gap-4 rounded-lg border p-4">
+                  <TransactionForm
+                    defaultValues={{
+                      date: formatDateForInput(new Date()),
+                    }}
+                    onSubmit={handleCreateSubmit}
+                    submitLabel="Add transaction"
+                    showKeepFormOpen
+                    keepFormOpen={keepFormOpen}
+                    onKeepFormOpenChange={setKeepFormOpen}
+                  />
+                </div>
 
-                      <Field className="lg:col-span-2">
-                        <FieldLabel>Category</FieldLabel>
-                        <Combobox
-                          items={categoryItems}
-                          autoHighlight
-                          value={
-                            formData.categoryId
-                              ? categoryItems.find((c) => c.value === formData.categoryId) ?? null
-                              : null
-                          }
-                          onValueChange={(v) => {
-                            const id = (v && typeof v === 'object' && 'value' in v ? v.value : v) ?? ''
-                            setFormData((prev) => ({
-                              ...prev,
-                              categoryId: id as Id<'categories'>,
-                            }))
-                            setErrors((prev) => ({
-                              ...prev,
-                              categoryId: undefined,
-                            }))
-                          }}
-                          onOpenChange={(open) => {
-                            if (open && formData.categoryId) {
-                              const isExpense = expenseCategories.some(
-                                (c) => c.id === formData.categoryId
-                              )
-                              const isIncome = incomeCategories.some(
-                                (c) => c.id === formData.categoryId
-                              )
-                              if (isExpense) setCategoryType('expense')
-                              else if (isIncome) setCategoryType('income')
-                            }
-                          }}
-                        >
-                          <ComboboxInput
-                            className="w-full"
-                            placeholder="Search or select category"
-                            aria-invalid={!!errors.categoryId}
-                          />
-                          <ComboboxContent>
-                            <Tabs
-                              value={categoryType}
-                              onValueChange={handleCategoryTypeChange}
-                              className="flex flex-col"
-                            >
-                              <TabsList className="mx-2 mt-2 shrink-0">
-                                <TabsTrigger value="expense">Expense</TabsTrigger>
-                                <TabsTrigger value="income">Income</TabsTrigger>
-                                <TabsTrigger value="transfer" disabled>
-                                  Transfer
-                                </TabsTrigger>
-                              </TabsList>
-                              <TabsContent
-                                value="expense"
-                                className="mt-0 flex-1 overflow-hidden"
-                              >
-                                <ComboboxEmpty>No expense categories found.</ComboboxEmpty>
-                                <ComboboxList>
-                                  {(item) => (
-                                    <ComboboxItem key={item.value} value={item}>
-                                      {item.label}
-                                    </ComboboxItem>
-                                  )}
-                                </ComboboxList>
-                              </TabsContent>
-                              <TabsContent
-                                value="income"
-                                className="mt-0 flex-1 overflow-hidden"
-                              >
-                                <ComboboxEmpty>No income categories found.</ComboboxEmpty>
-                                <ComboboxList>
-                                  {(item) => (
-                                    <ComboboxItem key={item.value} value={item}>
-                                      {item.label}
-                                    </ComboboxItem>
-                                  )}
-                                </ComboboxList>
-                              </TabsContent>
-                              <TabsContent
-                                value="transfer"
-                                className="mt-0 flex-1 overflow-hidden"
-                              >
-                                <div className="text-muted-foreground flex items-center justify-center py-8 text-sm">
-                                  Coming soon
-                                </div>
-                              </TabsContent>
-                            </Tabs>
-                          </ComboboxContent>
-                        </Combobox>
-                        <FieldError
-                          errors={
-                            errors.categoryId
-                              ? [{ message: errors.categoryId }]
-                              : undefined
-                          }
-                        />
-                      </Field>
+                {transactions.length > 0 && (() => {
+                  const sliced = transactions.slice(0, 20)
+                  const grouped = sliced.reduce<Record<string, typeof sliced>>((acc, tx) => {
+                    const key = new Date(tx.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                    ;(acc[key] ??= []).push(tx)
+                    return acc
+                  }, {})
+                  const dateKeys = Object.keys(grouped)
 
-                      <Field>
-                        <FieldLabel>Amount</FieldLabel>
-                        <InputGroup aria-invalid={!!errors.amount}>
-                          {selectedWallet && (
-                            <InputGroupAddon align="inline-start">
-                              <InputGroupText>
-                                {CURRENCIES.find(
-                                  (c) => c.id === selectedWallet.currency
-                                )?.symbol ?? selectedWallet.currency}
-                              </InputGroupText>
-                            </InputGroupAddon>
-                          )}
-                          <InputGroupInput
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={formData.amount}
-                            onChange={(e) => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                amount: e.target.value,
-                              }))
-                              setErrors((prev) => ({
-                                ...prev,
-                                amount: undefined,
-                              }))
-                            }}
-                            aria-invalid={!!errors.amount}
-                            autoComplete="off"
-                          />
-                        </InputGroup>
-                        <FieldError
-                          errors={
-                            errors.amount
-                              ? [{ message: errors.amount }]
-                              : undefined
-                          }
-                        />
-                      </Field>
-
-                      <Field>
-                        <FieldLabel htmlFor="transaction-date">Date</FieldLabel>
-                        <InputGroup aria-invalid={!!errors.date}>
-                          <InputGroupInput
-                            id="transaction-date"
-                            value={dateDisplayValue}
-                            placeholder="June 01, 2025"
-                            onChange={(e) => {
-                              const value = e.target.value
-                              setDateDisplayValue(value)
-                              const date = new Date(value)
-                              if (isValidDate(date)) {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  date: formatDateForInput(date),
-                                }))
-                                setDateMonth(date)
-                                setErrors((prev) => ({ ...prev, date: undefined }))
-                              } else if (value === '') {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  date: '',
-                                }))
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'ArrowDown') {
-                                e.preventDefault()
-                                setDatePickerOpen(true)
-                              }
-                            }}
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <Popover
-                              open={datePickerOpen}
-                              onOpenChange={setDatePickerOpen}
-                            >
-                              <PopoverTrigger asChild>
-                                <InputGroupButton
-                                  id="date-picker"
-                                  variant="ghost"
-                                  size="icon-xs"
-                                  aria-label="Select date"
-                                >
-                                  <CalendarIcon className="size-4" />
-                                  <span className="sr-only">Select date</span>
-                                </InputGroupButton>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-auto overflow-hidden p-0"
-                                align="end"
-                                alignOffset={-8}
-                                sideOffset={10}
-                              >
-                                <Calendar
-                                  mode="single"
-                                  selected={
-                                    formData.date
-                                      ? new Date(formData.date)
-                                      : undefined
-                                  }
-                                  month={dateMonth}
-                                  onMonthChange={setDateMonth}
-                                  onSelect={(date) => {
-                                    if (date) {
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        date: formatDateForInput(date),
-                                      }))
-                                      setDateDisplayValue(formatDateDisplay(date))
-                                      setDateMonth(date)
-                                      setErrors((prev) => ({
-                                        ...prev,
-                                        date: undefined,
-                                      }))
-                                      setDatePickerOpen(false)
-                                    }
-                                  }}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </InputGroupAddon>
-                        </InputGroup>
-                        <FieldError
-                          errors={
-                            errors.date
-                              ? [{ message: errors.date }]
-                              : undefined
-                          }
-                        />
-                      </Field>
-
-                      <Field>
-                        <FieldLabel>Note</FieldLabel>
-                        <Input
-                          placeholder="Optional note"
-                          value={formData.note}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              note: e.target.value,
-                            }))
-                          }
-                          autoComplete="off"
-                        />
-                      </Field>
-
-                      <Field className="sm:col-span-2">
-                        <FieldLabel>Tags</FieldLabel>
-                        <TagCombobox
-                          value={formData.tagIds}
-                          onChange={(tagIds) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              tagIds,
-                            }))
-                          }
-                          placeholder="Search or create tags"
-                        />
-                      </Field>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                      <label className="flex cursor-pointer items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={keepFormOpen}
-                          onCheckedChange={(checked) =>
-                            setKeepFormOpen(checked === true)
-                          }
-                        />
-                        <span>Keep form open for bulk adding</span>
-                      </label>
-                      <Button type="submit">Add transaction</Button>
-                    </div>
-                  </FieldGroup>
-                </form>
-
-                {transactions.length > 0 && (
-                  <div className="rounded-lg border">
-                    <div className="border-b px-4 py-3">
-                      <h2 className="text-sm font-medium">
-                        Recent transactions
-                      </h2>
-                    </div>
-                    <div className="divide-y">
-                      {transactions.slice(0, 20).map((tx) => {
-                        const wallet = wallets.find((w) => w.id === tx.walletId)
-                        const category =
-                          [...expenseCategories, ...incomeCategories].find(
-                            (c) => c.id === tx.categoryId
-                          )
-                        return (
-                          <div
-                            key={tx.id}
-                            className="flex items-center justify-between px-4 py-3"
-                          >
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sm font-medium">
-                                {category?.name ?? '—'}
-                              </span>
-                              <span className="text-muted-foreground text-xs">
-                                {wallet ? `${wallet.name} (${wallet.currency})` : '—'} •{' '}
-                                {new Date(tx.date).toLocaleDateString()}
-                                {tx.note && ` • ${tx.note}`}
-                                {(tx.tagIds?.length ?? 0) > 0 && (
-                                  <>
-                                    {' • '}
-                                    {(tx.tagIds ?? [])
-                                      .map(
-                                        (id: Id<'tags'>) =>
-                                          tags.find((t: { id: Id<'tags'>; name: string }) => t.id === id)?.name ??
-                                          '—'
-                                      )
-                                      .join(', ')}
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                            <span
-                              className={
-                                tx.amount >= 0
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-destructive'
-                              }
-                            >
-                              {tx.amount >= 0 ? '+' : '-'}
-                              {Math.abs(tx.amount).toLocaleString(undefined, {
-                                style: 'currency',
-                                currency: wallet?.currency ?? 'USD',
-                              })}
+                  return (
+                    <div className="flex flex-col gap-4">
+                      <h2 className="text-sm font-medium">Recent transactions</h2>
+                      {dateKeys.map((dateLabel) => (
+                        <div key={dateLabel} className="rounded-lg border">
+                          <div className="bg-muted/50 border-b px-4 py-2">
+                            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                              {dateLabel}
                             </span>
                           </div>
-                        )
-                      })}
+                          <div className="divide-y">
+                            {grouped[dateLabel].map((tx) => {
+                              const wallet = wallets.find((w) => w.id === tx.walletId)
+                              const category =
+                                [...expenseCategories, ...incomeCategories].find(
+                                  (c) => c.id === tx.categoryId
+                                )
+                              return (
+                                <div
+                                  key={tx.id}
+                                  className="group flex items-center justify-between px-4 py-3"
+                                >
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-sm font-medium">
+                                      {category?.name ?? '—'}
+                                    </span>
+                                    <span className="text-muted-foreground text-xs">
+                                      {wallet ? `${wallet.name} (${wallet.currency})` : '—'}
+                                      {tx.note && ` • ${tx.note}`}
+                                      {(tx.tagIds?.length ?? 0) > 0 && (
+                                        <>
+                                          {' • '}
+                                          {(tx.tagIds ?? [])
+                                            .map(
+                                              (id: Id<'tags'>) =>
+                                                tags.find((t: { id: Id<'tags'>; name: string }) => t.id === id)?.name ??
+                                                '—'
+                                            )
+                                            .join(', ')}
+                                        </>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={
+                                        tx.amount >= 0
+                                          ? 'text-emerald-600 dark:text-emerald-400'
+                                          : 'text-destructive'
+                                      }
+                                    >
+                                      {tx.amount >= 0 ? '+' : '-'}
+                                      {Math.abs(tx.amount).toLocaleString(undefined, {
+                                        style: 'currency',
+                                        currency: wallet?.currency ?? 'USD',
+                                      })}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-muted-foreground hover:text-foreground size-7 opacity-0 transition-opacity group-hover:opacity-100"
+                                      onClick={() =>
+                                        setEditTransaction({
+                                          id: tx.id,
+                                          walletId: tx.walletId,
+                                          categoryId: tx.categoryId,
+                                          amount: tx.amount,
+                                          note: tx.note,
+                                          date: tx.date,
+                                          tagIds: tx.tagIds ?? [],
+                                        })
+                                      }
+                                    >
+                                      <PenSquareIcon className="size-4" />
+                                      <span className="sr-only">Edit transaction</span>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-muted-foreground hover:text-destructive size-7 opacity-0 transition-opacity group-hover:opacity-100"
+                                      onClick={() =>
+                                        removeTransaction({ id: tx.id })
+                                      }
+                                    >
+                                      <Trash2 className="size-4" />
+                                      <span className="sr-only">Delete transaction</span>
+                                    </Button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             </div>
           </div>
         </div>
+
+        <TransactionFormDialog
+          open={!!editTransaction}
+          onOpenChange={(open) => !open && setEditTransaction(null)}
+          transaction={editTransaction}
+        />
       </SidebarInset>
     </SidebarProvider>
   )
