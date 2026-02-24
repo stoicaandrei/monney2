@@ -74,7 +74,6 @@ const data = {
       title: "Tags",
       url: "/tags",
       icon: <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} />,
-      disabled: true,
     },
   ],
   navSecondary: [

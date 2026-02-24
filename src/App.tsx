@@ -3,6 +3,7 @@ import { ComponentExample } from "@/components/component-example";
 import DashboardPage from "@/pages/dashboard/dahsboard-page";
 import WalletsPage from "@/pages/wallets/wallets-page";
 import CategoriesPage from "@/pages/categories/categories-page";
+import TagsPage from "@/pages/tags/tags-page";
 import TransactionsPage from "@/pages/transactions/transactions-page";
 
 export function App() {
@@ -12,6 +13,7 @@ export function App() {
       <Route path="/transactions" element={<TransactionsPage />} />
       <Route path="/wallets" element={<WalletsPage />} />
       <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/tags" element={<TagsPage />} />
       <Route path="/components" element={<ComponentExample />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
