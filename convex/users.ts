@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
+import { createDefaultsForUser } from "./onboarding";
 
 export async function getCurrentUser(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -41,9 +42,12 @@ export const store = mutation({
       return user._id;
     }
 
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       name: identity.name ?? "Anonymous",
       tokenIdentifier: identity.tokenIdentifier,
     });
+
+    await createDefaultsForUser(ctx, userId);
+    return userId;
   },
 });
