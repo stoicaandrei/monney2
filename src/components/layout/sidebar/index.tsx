@@ -81,7 +81,6 @@ const data = {
       title: "Settings",
       url: "/settings",
       icon: <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />,
-      disabled: true,
     },
     {
       title: "Get Help",

@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 
 export default function WalletsPage() {
   const wallets = useQuery(api.wallets.list) ?? [];
+  const preferences = useQuery(api.userPreferences.get);
+  const defaultCurrency = preferences?.defaultCurrency ?? 'EUR';
   const isPending = false;
   const error = null;
 
@@ -148,6 +150,7 @@ export default function WalletsPage() {
         onOpenChange={setDialogOpen}
         wallet={editingWallet}
         onSubmit={handleSubmit}
+        defaultCurrency={defaultCurrency}
       />
     </SidebarProvider>
   );

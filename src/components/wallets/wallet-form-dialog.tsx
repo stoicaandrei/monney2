@@ -46,24 +46,29 @@ interface WalletFormDialogProps {
   onOpenChange: (open: boolean) => void
   wallet?: Wallet | null
   onSubmit: (data: WalletFormData, existingId?: string) => void
+  defaultCurrency?: WalletFormData['currency']
 }
 
-const defaultFormData: WalletFormData = {
+const getDefaultFormData = (
+  defaultCurrency: WalletFormData['currency'] = 'EUR',
+): WalletFormData => ({
   name: '',
-  currency: 'USD',
+  currency: defaultCurrency,
   color: 'emerald',
   icon: 'wallet',
   initialAmount: 0,
-}
+})
 
 export function WalletFormDialog({
   open,
   onOpenChange,
   wallet,
   onSubmit,
+  defaultCurrency = 'EUR',
 }: WalletFormDialogProps) {
-  const [formData, setFormData] =
-    React.useState<WalletFormData>(defaultFormData)
+  const [formData, setFormData] = React.useState<WalletFormData>(
+    getDefaultFormData(defaultCurrency),
+  )
   const [errors, setErrors] = React.useState<
     Partial<Record<keyof WalletFormData, string>>
   >({})
@@ -84,12 +89,12 @@ export function WalletFormDialog({
         })
         setAmountInputValue(formatCurrencyInput(wallet.initialAmount))
       } else {
-        setFormData(defaultFormData)
+        setFormData(getDefaultFormData(defaultCurrency))
         setAmountInputValue(formatCurrencyInput(0))
       }
       setErrors({})
     }
-  }, [open, wallet])
+  }, [open, wallet, defaultCurrency])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

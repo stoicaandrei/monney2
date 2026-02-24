@@ -81,4 +81,9 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_userId_date', ['userId', 'date'])
     .index('by_walletId', ['walletId']),
+
+  userPreferences: defineTable({
+    userId: v.id('users'),
+    defaultCurrency: currencyValidator,
+  }).index('by_userId', ['userId']),
 })

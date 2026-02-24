@@ -11,6 +11,17 @@ export async function createDefaultsForUser(
   userId: Id<"users">,
 ): Promise<void> {
   await createDefaultCategories(ctx, userId);
+  await createDefaultUserPreferences(ctx, userId);
+}
+
+async function createDefaultUserPreferences(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+): Promise<void> {
+  await ctx.db.insert("userPreferences", {
+    userId,
+    defaultCurrency: "EUR",
+  });
 }
 
 async function createDefaultCategories(
