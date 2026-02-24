@@ -30,6 +30,11 @@ const currencyValidator = v.union(
   v.literal('CHF')
 )
 
+const categoryTypeValidator = v.union(
+  v.literal('income'),
+  v.literal('expense')
+)
+
 export default defineSchema({
   users: defineTable({
     name: v.string(),
@@ -44,4 +49,16 @@ export default defineSchema({
     icon: walletIconValidator,
     initialAmount: v.number(),
   }).index('by_userId', ['userId']),
+
+  categories: defineTable({
+    userId: v.id('users'),
+    name: v.string(),
+    type: categoryTypeValidator,
+    color: v.string(), // hex color e.g. #10b981
+    parentId: v.optional(v.id('categories')),
+    order: v.number(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_type', ['userId', 'type'])
+    .index('by_parentId', ['parentId']),
 })

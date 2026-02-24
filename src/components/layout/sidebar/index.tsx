@@ -70,7 +70,6 @@ const data = {
       title: "Categories",
       url: "/categories",
       icon: <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} />,
-      disabled: true,
     },
     {
       title: "Tags",
