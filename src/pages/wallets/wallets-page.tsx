@@ -4,6 +4,24 @@ import * as React from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -15,8 +33,45 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
+function SortableWalletCard({
+  wallet,
+  onEdit,
+}: {
+  wallet: Wallet;
+  onEdit: (wallet: Wallet) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: wallet.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "cursor-grab active:cursor-grabbing touch-none",
+        isDragging && "z-50 cursor-grabbing opacity-80"
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <WalletCard wallet={wallet} onEdit={onEdit} />
+    </div>
+  );
+}
+
 export default function WalletsPage() {
-  const wallets = useQuery(api.wallets.list) ?? [];
+  const walletsFromQuery = useQuery(api.wallets.list) ?? [];
   const preferences = useQuery(api.userPreferences.get);
   const defaultCurrency = preferences?.defaultCurrency ?? 'EUR';
   const isPending = false;
@@ -24,9 +79,41 @@ export default function WalletsPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingWallet, setEditingWallet] = React.useState<Wallet | null>(null);
+  const [optimisticWallets, setOptimisticWallets] = React.useState<
+    typeof walletsFromQuery | null
+  >(null);
+
+  const wallets = optimisticWallets ?? walletsFromQuery;
 
   const createWallet = useMutation(api.wallets.create);
   const updateWallet = useMutation(api.wallets.update);
+  const reorderWallets = useMutation(api.wallets.reorder);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  const walletIds = React.useMemo<UniqueIdentifier[]>(
+    () => wallets.map((w) => w.id),
+    [wallets]
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = walletIds.indexOf(active.id);
+    const newIndex = walletIds.indexOf(over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(wallets, oldIndex, newIndex);
+    setOptimisticWallets(reordered);
+    reorderWallets({
+      updates: reordered.map((w, i) => ({ id: w.id as Id<"wallets">, order: i })),
+    }).finally(() => setOptimisticWallets(null));
+  };
 
   const handleCreate = () => {
     setEditingWallet(null);
@@ -113,15 +200,25 @@ export default function WalletsPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {wallets.map((wallet) => (
-                      <WalletCard
-                        key={wallet.id}
-                        wallet={wallet}
-                        onEdit={handleEdit}
-                      />
-                    ))}
-                    <button
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      <SortableContext
+                        items={walletIds}
+                        strategy={rectSortingStrategy}
+                      >
+                        {wallets.map((wallet) => (
+                          <SortableWalletCard
+                            key={wallet.id}
+                            wallet={wallet}
+                            onEdit={handleEdit}
+                          />
+                        ))}
+                      </SortableContext>
+                      <button
                       type="button"
                       onClick={handleCreate}
                       className={cn(
@@ -137,7 +234,8 @@ export default function WalletsPage() {
                       />
                       <span className="text-sm font-medium">Add wallet</span>
                     </button>
-                  </div>
+                    </div>
+                  </DndContext>
                 )}
               </div>
             </div>

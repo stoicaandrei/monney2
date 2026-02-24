@@ -48,6 +48,12 @@ export const list = query({
       .query('wallets')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
       .collect()
+    // Sort by order (undefined last for backward compatibility)
+    walletDocs.sort((a, b) => {
+      const orderA = a.order ?? 1e9
+      const orderB = b.order ?? 1e9
+      return orderA - orderB
+    })
     // NOTE: For higher scale, consider a denormalized balance field on wallets.
     const results = await Promise.all(
       walletDocs.map(async (doc) => {
@@ -65,6 +71,7 @@ export const list = query({
           icon: doc.icon,
           initialAmount: doc.initialAmount,
           balance,
+          order: doc.order,
         }
       }),
     )
@@ -77,6 +84,14 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx)
     if (!user) throw new Error('Not authenticated')
+    const existing = await ctx.db
+      .query('wallets')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect()
+    const maxOrder = existing.reduce(
+      (max, w) => Math.max(max, w.order ?? -1),
+      -1
+    )
     const id = await ctx.db.insert('wallets', {
       userId: user._id,
       name: args.name,
@@ -84,6 +99,7 @@ export const create = mutation({
       color: args.color,
       icon: args.icon,
       initialAmount: args.initialAmount,
+      order: maxOrder + 1,
     })
     const doc = await ctx.db.get(id)
     if (!doc) throw new Error('Failed to create wallet')
@@ -126,5 +142,30 @@ export const update = mutation({
       icon: updatedDoc.icon,
       initialAmount: updatedDoc.initialAmount,
     }
+  },
+})
+
+export const reorder = mutation({
+  args: {
+    updates: v.array(
+      v.object({
+        id: v.id('wallets'),
+        order: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    for (const { id, order } of args.updates) {
+      const doc = await ctx.db.get(id)
+      if (!doc) continue
+      if (doc.userId !== user._id) continue
+
+      await ctx.db.patch(id, { order })
+    }
+
+    return { success: true }
   },
 })
