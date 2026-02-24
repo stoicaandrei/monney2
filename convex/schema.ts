@@ -86,4 +86,10 @@ export default defineSchema({
     userId: v.id('users'),
     defaultCurrency: currencyValidator,
   }).index('by_userId', ['userId']),
+
+  helpMessages: defineTable({
+    name: v.string(),
+    message: v.string(),
+    createdAt: v.number(),
+  }).index('by_createdAt', ['createdAt']),
 })

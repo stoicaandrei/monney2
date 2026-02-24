@@ -6,11 +6,13 @@ import CategoriesPage from "@/pages/categories/categories-page";
 import TagsPage from "@/pages/tags/tags-page";
 import TransactionsPage from "@/pages/transactions/transactions-page";
 import SettingsPage from "@/pages/settings/settings-page";
+import GetHelpPage from "@/pages/get-help/get-help-page";
 
 export function App() {
   return (
     <Routes>
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/get-help" element={<GetHelpPage />} />
       <Route path="/transactions" element={<TransactionsPage />} />
       <Route path="/wallets" element={<WalletsPage />} />
       <Route path="/categories" element={<CategoriesPage />} />

@@ -86,7 +86,6 @@ const data = {
       title: "Get Help",
       url: "/get-help",
       icon: <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />,
-      disabled: true,
     },
   ],
 };
