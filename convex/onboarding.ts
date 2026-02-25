@@ -29,29 +29,16 @@ async function createDefaultCategories(
   userId: Id<"users">,
 ): Promise<void> {
   for (const type of ["income", "expense"] as const) {
-    const roots = DEFAULT_CATEGORIES[type];
-    for (let i = 0; i < roots.length; i++) {
-      const node = roots[i];
-      const parentId = await ctx.db.insert("categories", {
+    const categories = DEFAULT_CATEGORIES[type];
+    for (let i = 0; i < categories.length; i++) {
+      const node = categories[i];
+      await ctx.db.insert("categories", {
         userId,
         name: node.name,
         type,
         color: node.color,
         order: i,
       });
-      if (node.children) {
-        for (let j = 0; j < node.children.length; j++) {
-          const child = node.children[j];
-          await ctx.db.insert("categories", {
-            userId,
-            name: child.name,
-            type,
-            color: child.color,
-            parentId,
-            order: j,
-          });
-        }
-      }
     }
   }
 }

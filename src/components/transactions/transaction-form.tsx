@@ -21,13 +21,13 @@ import {
   ComboboxItem,
   ComboboxList,
 } from '@/components/ui/combobox'
+import { CategoryCombobox } from '@/components/transactions/category-combobox'
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldError,
 } from '@/components/ui/field'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CURRENCIES } from '@/types/wallet'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -127,22 +127,6 @@ export function TransactionForm({
       })),
     [wallets]
   )
-
-  const categoryItems = React.useMemo(() => {
-    if (categoryType === 'expense') {
-      return expenseCategories.map((c) => ({
-        value: c.id,
-        label: c.name,
-      }))
-    }
-    if (categoryType === 'income') {
-      return incomeCategories.map((c) => ({
-        value: c.id,
-        label: c.name,
-      }))
-    }
-    return []
-  }, [categoryType, expenseCategories, incomeCategories])
 
   // Only sync from defaultValues when editing (has walletId) - avoids resetting create form on re-render
   const isEditMode = defaultValues && 'walletId' in defaultValues && !!defaultValues.walletId
@@ -290,94 +274,21 @@ export function TransactionForm({
 
           <Field className="lg:col-span-2">
             <FieldLabel>Category</FieldLabel>
-            <Combobox
-              items={categoryItems}
-              autoHighlight
-              value={
-                formData.categoryId
-                  ? categoryItems.find((c) => c.value === formData.categoryId) ?? null
-                  : null
-              }
-              onValueChange={(v) => {
-                const id = (v && typeof v === 'object' && 'value' in v ? v.value : v) ?? ''
+            <CategoryCombobox
+              id={categoryInputId}
+              value={formData.categoryId}
+              onChange={(categoryId) => {
                 setFormData((prev) => ({
                   ...prev,
-                  categoryId: id as Id<'categories'>,
+                  categoryId: categoryId as Id<'categories'> | '',
                 }))
-                setErrors((prev) => ({
-                  ...prev,
-                  categoryId: undefined,
-                }))
+                setErrors((prev) => ({ ...prev, categoryId: undefined }))
               }}
-              onOpenChange={(open) => {
-                if (open && formData.categoryId) {
-                  const isExpense = expenseCategories.some(
-                    (c) => c.id === formData.categoryId
-                  )
-                  const isIncome = incomeCategories.some(
-                    (c) => c.id === formData.categoryId
-                  )
-                  if (isExpense) setCategoryType('expense')
-                  else if (isIncome) setCategoryType('income')
-                }
-              }}
-            >
-              <ComboboxInput
-                id={categoryInputId}
-                className="w-full"
-                placeholder="Search or select category"
-                aria-invalid={!!errors.categoryId}
-              />
-              <ComboboxContent>
-                <Tabs
-                  value={categoryType}
-                  onValueChange={handleCategoryTypeChange}
-                  className="flex flex-col"
-                >
-                  <TabsList className="mx-2 mt-2 shrink-0">
-                    <TabsTrigger value="expense">Expense</TabsTrigger>
-                    <TabsTrigger value="income">Income</TabsTrigger>
-                    <TabsTrigger value="transfer" disabled>
-                      Transfer
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent
-                    value="expense"
-                    className="mt-0 flex-1 overflow-hidden"
-                  >
-                    <ComboboxEmpty>No expense categories found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem key={item.value} value={item}>
-                          {item.label}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </TabsContent>
-                  <TabsContent
-                    value="income"
-                    className="mt-0 flex-1 overflow-hidden"
-                  >
-                    <ComboboxEmpty>No income categories found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem key={item.value} value={item}>
-                          {item.label}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </TabsContent>
-                  <TabsContent
-                    value="transfer"
-                    className="mt-0 flex-1 overflow-hidden"
-                  >
-                    <div className="text-muted-foreground flex items-center justify-center py-8 text-sm">
-                      Coming soon
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </ComboboxContent>
-            </Combobox>
+              categoryType={categoryType}
+              onCategoryTypeChange={handleCategoryTypeChange}
+              placeholder="Search or select category"
+              aria-invalid={!!errors.categoryId}
+            />
             <FieldError
               errors={
                 errors.categoryId
