@@ -44,6 +44,7 @@ import {
   ChartDownIcon,
   Wallet01Icon,
 } from "@hugeicons/core-free-icons";
+import { SpendingSankeyChart } from "@/components/dashboard/spending-sankey-chart";
 
 const chartConfig = {
   income: {
@@ -441,6 +442,8 @@ export default function DashboardPage() {
               </ChartContainer>
             </CardContent>
           </Card>
+
+          <SpendingSankeyChart days={days} formatCurrency={formatCurrency} />
 
           <p className="text-muted-foreground text-xs">
             Currency conversion coming soon.
