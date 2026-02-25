@@ -1,6 +1,7 @@
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { DEFAULT_CATEGORIES } from "./defaultCategories";
+import { DEFAULT_TAGS } from "./defaultTags";
 
 /**
  * Creates all default data for a newly registered user.
@@ -11,6 +12,7 @@ export async function createDefaultsForUser(
   userId: Id<"users">,
 ): Promise<void> {
   await createDefaultCategories(ctx, userId);
+  await createDefaultTags(ctx, userId);
   await createDefaultUserPreferences(ctx, userId);
 }
 
@@ -40,5 +42,17 @@ async function createDefaultCategories(
         order: i,
       });
     }
+  }
+}
+
+async function createDefaultTags(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+): Promise<void> {
+  for (const name of DEFAULT_TAGS) {
+    await ctx.db.insert("tags", {
+      userId,
+      name,
+    });
   }
 }
