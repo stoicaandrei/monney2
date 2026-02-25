@@ -141,7 +141,7 @@ export function CategoryCombobox({
             type="text"
             value={open ? search : (selectedCategory?.name ?? '')}
             onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setOpen(true)}
+            onFocus={() => handleOpenChange(true)}
             onKeyDown={handleKeyDown}
             placeholder={selectedCategory ? '' : placeholder}
             aria-invalid={ariaInvalid}
