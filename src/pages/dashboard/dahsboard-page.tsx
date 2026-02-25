@@ -249,11 +249,11 @@ export default function DashboardPage() {
                       content={
                         <ChartTooltipContent
                           labelFormatter={(value) =>
-                            new Date(value).toLocaleDateString("en-US", {
+                            value != null ? new Date(value as string | number).toLocaleDateString("en-US", {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
-                            })
+                            }) : ""
                           }
                           formatter={(value) => formatCurrency(Number(value))}
                           indicator="dot"
@@ -294,8 +294,8 @@ export default function DashboardPage() {
                         content={
                           <ChartTooltipContent
                             labelFormatter={(_, payload) =>
-                              payload?.[0]?.payload?.name ??
-                              payload?.[0]?.name ??
+                              (payload?.[0]?.payload as { name?: string })?.name ??
+                              (payload?.[0] as { name?: string })?.name ??
                               ""
                             }
                             formatter={(value) => formatCurrency(Number(value))}
@@ -413,11 +413,11 @@ export default function DashboardPage() {
                     content={
                       <ChartTooltipContent
                         labelFormatter={(value) =>
-                          new Date(value).toLocaleDateString("en-US", {
+                          value != null ? new Date(value as string | number).toLocaleDateString("en-US", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
-                          })
+                          }) : ""
                         }
                         formatter={(value) => formatCurrency(Number(value))}
                         indicator="dot"

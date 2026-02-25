@@ -38,6 +38,7 @@ import {
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { TagCombobox } from '@/components/transactions/tag-combobox'
 import { formatDateToYYYYMMDD, parseDateString } from '@/lib/utils'
+import type { CategoryType } from '@/types/category'
 
 export function formatDateForInput(date: Date): string {
   return formatDateToYYYYMMDD(date)
@@ -103,9 +104,7 @@ export function TransactionForm({
     ...defaultTransactionFormData,
     ...defaultValues,
   }))
-  const [categoryType, setCategoryType] = React.useState<
-    'income' | 'expense' | 'transfer'
-  >('expense')
+  const [categoryType, setCategoryType] = React.useState<CategoryType>('expense')
   const [datePickerOpen, setDatePickerOpen] = React.useState(false)
   const [dateMonth, setDateMonth] = React.useState<Date | undefined>(() =>
     formData.date ? parseDateString(formData.date) : new Date()
@@ -155,9 +154,8 @@ export function TransactionForm({
     [wallets, formData.walletId]
   )
 
-  const handleCategoryTypeChange = (value: string) => {
-    if (value === 'transfer') return
-    const newType = value as 'income' | 'expense'
+  const handleCategoryTypeChange = (value: CategoryType) => {
+    const newType = value
     setCategoryType(newType)
     const idsInNewType =
       newType === 'expense'

@@ -49,9 +49,9 @@ export function CategoryCombobox({
   const categories = categoryType === 'expense' ? expenseCategories : incomeCategories
   const categoryMap = React.useMemo(
     () =>
-      new Map([
-        ...expenseCategories.map((c) => [c.id, c]),
-        ...incomeCategories.map((c) => [c.id, c]),
+      new Map<Id<'categories'>, Category>([
+        ...expenseCategories.map((c) => [c.id, c] as [Id<'categories'>, Category]),
+        ...incomeCategories.map((c) => [c.id, c] as [Id<'categories'>, Category]),
       ]),
     [expenseCategories, incomeCategories]
   )

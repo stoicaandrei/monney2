@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { ResponsiveSankey } from "@nivo/sankey";
@@ -38,7 +37,7 @@ export function SpendingSankeyChart({ days, formatCurrency }: SpendingSankeyChar
             <ResponsiveSankey
               data={sankeyData}
               margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-              label={(node) => node.label ?? node.id}
+              label={(node) => (node as { label?: string; id: string }).label ?? node.id}
               nodeOpacity={0.9}
               nodeHoverOpacity={1}
               nodeThickness={18}
@@ -49,7 +48,7 @@ export function SpendingSankeyChart({ days, formatCurrency }: SpendingSankeyChar
               linkHoverOpacity={0.8}
               enableLinkGradient
               linkContract={0}
-              colors={(node) => node.color ?? "#94a3b8"}
+              colors={(node) => (node as { color?: string }).color ?? "#94a3b8"}
               labelTextColor={{
                 from: "color",
                 modifiers: [["darker", 1.2]],
