@@ -1,5 +1,6 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
+import type { Id } from './_generated/dataModel'
 import { getCurrentUser } from './users'
 
 const walletIconValidator = v.union(
@@ -44,6 +45,7 @@ export const list = query({
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx)
     if (!user) return []
+
     const walletDocs = await ctx.db
       .query('wallets')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
@@ -71,11 +73,32 @@ export const list = query({
           icon: doc.icon,
           initialAmount: doc.initialAmount,
           balance,
+          sectionId: doc.sectionId ?? null,
           order: doc.order,
         }
       }),
     )
     return results
+  },
+})
+
+export const listSections = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) return []
+
+    const sectionDocs = await ctx.db
+      .query('walletSections')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect()
+    sectionDocs.sort((a, b) => a.order - b.order)
+
+    return sectionDocs.map((section) => ({
+      id: section._id as string,
+      name: section.name,
+      order: section.order,
+    }))
   },
 })
 
@@ -99,6 +122,7 @@ export const create = mutation({
       color: args.color,
       icon: args.icon,
       initialAmount: args.initialAmount,
+      sectionId: null,
       order: maxOrder + 1,
     })
     const doc = await ctx.db.get(id)
@@ -150,6 +174,79 @@ export const reorder = mutation({
     updates: v.array(
       v.object({
         id: v.id('wallets'),
+        sectionId: v.union(v.id('walletSections'), v.null()),
+        order: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const userSectionDocs = await ctx.db
+      .query('walletSections')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect()
+    const userSectionIds = new Set(
+      userSectionDocs.map((section) => section._id as Id<'walletSections'>)
+    )
+
+    for (const { id, sectionId, order } of args.updates) {
+      const doc = await ctx.db.get(id)
+      if (!doc) continue
+      if (doc.userId !== user._id) continue
+      if (sectionId !== null && !userSectionIds.has(sectionId)) continue
+
+      await ctx.db.patch(id, { sectionId, order })
+    }
+
+    return { success: true }
+  },
+})
+
+export const createSection = mutation({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const normalizedName = args.name.trim()
+    if (!normalizedName) throw new Error('Section name is required')
+
+    const existingSections = await ctx.db
+      .query('walletSections')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect()
+
+    const maxOrder = existingSections.reduce(
+      (max, section) => Math.max(max, section.order),
+      -1
+    )
+    const now = Date.now()
+
+    const sectionId = await ctx.db.insert('walletSections', {
+      userId: user._id,
+      name: normalizedName,
+      order: maxOrder + 1,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    return {
+      id: sectionId as string,
+      name: normalizedName,
+      order: maxOrder + 1,
+    }
+  },
+})
+
+export const reorderSections = mutation({
+  args: {
+    updates: v.array(
+      v.object({
+        id: v.id('walletSections'),
         order: v.number(),
       })
     ),
@@ -159,12 +256,37 @@ export const reorder = mutation({
     if (!user) throw new Error('Not authenticated')
 
     for (const { id, order } of args.updates) {
-      const doc = await ctx.db.get(id)
-      if (!doc) continue
-      if (doc.userId !== user._id) continue
+      const section = await ctx.db.get(id)
+      if (!section) continue
+      if (section.userId !== user._id) continue
 
-      await ctx.db.patch(id, { order })
+      await ctx.db.patch(id, { order, updatedAt: Date.now() })
     }
+
+    return { success: true }
+  },
+})
+
+export const renameSection = mutation({
+  args: {
+    id: v.id('walletSections'),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const section = await ctx.db.get(args.id)
+    if (!section) throw new Error('Section not found')
+    if (section.userId !== user._id) throw new Error('Unauthorized')
+
+    const normalizedName = args.name.trim()
+    if (!normalizedName) throw new Error('Section name is required')
+
+    await ctx.db.patch(args.id, {
+      name: normalizedName,
+      updatedAt: Date.now(),
+    })
 
     return { success: true }
   },

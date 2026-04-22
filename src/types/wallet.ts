@@ -34,6 +34,14 @@ export interface Wallet {
   icon: WalletIconId
   initialAmount: number
   balance: number // initialAmount + sum of all transactions
+  sectionId: string | null
+  order?: number
+}
+
+export interface WalletSection {
+  id: string
+  name: string
+  order: number
 }
 
 export interface WalletFormData {
