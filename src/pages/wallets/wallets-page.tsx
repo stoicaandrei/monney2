@@ -131,9 +131,11 @@ function moveWalletToTarget(
 function SortableWalletCard({
   wallet,
   onEdit,
+  onDelete,
 }: {
   wallet: Wallet;
   onEdit: (wallet: Wallet) => void;
+  onDelete: (wallet: Wallet) => void;
 }) {
   const {
     attributes,
@@ -160,7 +162,7 @@ function SortableWalletCard({
       {...attributes}
       {...listeners}
     >
-      <WalletCard wallet={wallet} onEdit={onEdit} />
+      <WalletCard wallet={wallet} onEdit={onEdit} onDelete={onDelete} />
     </div>
   );
 }
@@ -170,6 +172,7 @@ function WalletSectionColumn({
   wallets,
   walletIds,
   onEdit,
+  onDelete,
   onCreateWallet,
   onRenameSection,
   dragHandleAttributes,
@@ -181,6 +184,7 @@ function WalletSectionColumn({
   wallets: Wallet[];
   walletIds: UniqueIdentifier[];
   onEdit: (wallet: Wallet) => void;
+  onDelete: (wallet: Wallet) => void;
   onCreateWallet: () => void;
   onRenameSection?: (section: WalletSection) => void;
   dragHandleAttributes?: ReturnType<typeof useSortable>["attributes"];
@@ -237,7 +241,12 @@ function WalletSectionColumn({
       <SortableContext items={walletIds} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {wallets.map((wallet) => (
-            <SortableWalletCard key={wallet.id} wallet={wallet} onEdit={onEdit} />
+            <SortableWalletCard
+              key={wallet.id}
+              wallet={wallet}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
           <button
             type="button"
@@ -262,6 +271,7 @@ function SortableWalletSectionColumn({
   wallets,
   walletIds,
   onEdit,
+  onDelete,
   onCreateWallet,
   onRenameSection,
 }: {
@@ -269,6 +279,7 @@ function SortableWalletSectionColumn({
   wallets: Wallet[];
   walletIds: UniqueIdentifier[];
   onEdit: (wallet: Wallet) => void;
+  onDelete: (wallet: Wallet) => void;
   onCreateWallet: () => void;
   onRenameSection: (section: WalletSection) => void;
 }) {
@@ -294,6 +305,7 @@ function SortableWalletSectionColumn({
         wallets={wallets}
         walletIds={walletIds}
         onEdit={onEdit}
+        onDelete={onDelete}
         onCreateWallet={onCreateWallet}
         onRenameSection={onRenameSection}
         dragHandleAttributes={attributes}
@@ -339,6 +351,7 @@ export default function WalletsPage() {
 
   const createWallet = useMutation(api.wallets.create);
   const updateWallet = useMutation(api.wallets.update);
+  const removeWallet = useMutation(api.wallets.remove);
   const reorderWallets = useMutation(api.wallets.reorder);
   const createSection = useMutation(api.wallets.createSection);
   const renameSection = useMutation(api.wallets.renameSection);
@@ -481,6 +494,23 @@ export default function WalletsPage() {
     setDialogOpen(true);
   };
 
+  const handleDelete = (wallet: Wallet) => {
+    const shouldDelete = window.confirm(
+      `Delete "${wallet.name}" wallet? This will also delete all transactions in this wallet.`,
+    );
+    if (!shouldDelete) return;
+
+    removeWallet({ id: wallet.id as Id<"wallets"> })
+      .then(() => {
+        toast.success("Wallet deleted");
+      })
+      .catch((mutationError: unknown) => {
+        toast.error(
+          `Could not delete wallet: ${mutationError instanceof Error ? mutationError.message : "Unknown error"}`,
+        );
+      });
+  };
+
   const handleSubmit = (data: WalletFormData, existingId?: string) => {
     if (existingId) {
       updateWallet({ id: existingId as Id<"wallets">, ...data }).then(() => {
@@ -611,6 +641,7 @@ export default function WalletsPage() {
                           (wallet) => getWalletDragId(wallet.id),
                         )}
                         onEdit={handleEdit}
+                        onDelete={handleDelete}
                         onCreateWallet={handleCreate}
                       />
                       <SortableContext
@@ -631,6 +662,7 @@ export default function WalletsPage() {
                               wallets={sectionWallets}
                               walletIds={sectionWalletIds}
                               onEdit={handleEdit}
+                              onDelete={handleDelete}
                               onCreateWallet={handleCreate}
                               onRenameSection={handleOpenRenameSection}
                             />
@@ -639,7 +671,9 @@ export default function WalletsPage() {
                       </SortableContext>
                     </div>
                     <DragOverlay>
-                      {activeWallet ? <WalletCard wallet={activeWallet} onEdit={handleEdit} /> : null}
+                      {activeWallet ? (
+                        <WalletCard wallet={activeWallet} onEdit={handleEdit} />
+                      ) : null}
                     </DragOverlay>
                   </DndContext>
                 )}

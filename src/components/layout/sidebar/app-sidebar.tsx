@@ -28,6 +28,7 @@ import {
   HelpCircleIcon,
   CommandIcon,
 } from "@hugeicons/core-free-icons";
+import { Bot } from "lucide-react";
 
 const data = {
   navMain: [
@@ -35,6 +36,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />,
+    },
+    {
+      title: "Clanker",
+      url: "/clanker",
+      icon: <Bot className="size-4" />,
     },
     {
       title: "Transactions",

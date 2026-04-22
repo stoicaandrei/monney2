@@ -15,13 +15,15 @@ import { CURRENCIES, WALLET_COLORS, type Wallet } from '@/types/wallet'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Edit02Icon } from '@hugeicons/core-free-icons'
 import { cn } from '@/lib/utils'
+import { Trash2 } from 'lucide-react'
 
 interface WalletCardProps {
   wallet: Wallet
   onEdit: (wallet: Wallet) => void
+  onDelete?: (wallet: Wallet) => void
 }
 
-export function WalletCard({ wallet, onEdit }: WalletCardProps) {
+export function WalletCard({ wallet, onEdit, onDelete }: WalletCardProps) {
   const currency = CURRENCIES.find((c) => c.id === wallet.currency)
   const colorConfig = WALLET_COLORS.find((c) => c.id === wallet.color)
   const formattedAmount = formatCurrency(
@@ -47,7 +49,18 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
         style={{ backgroundColor: 'var(--wallet-accent)' }}
       />
       <CardHeader>
-        <CardAction>
+        <CardAction className="flex items-center gap-1">
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground hover:text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={() => onDelete(wallet)}
+            >
+              <Trash2 className="size-4" />
+              <span className="sr-only">Delete wallet</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"

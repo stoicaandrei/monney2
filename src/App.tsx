@@ -8,6 +8,7 @@ import TransactionsPage from "@/pages/transactions/transactions-page";
 import SettingsPage from "@/pages/settings/settings-page";
 import GetHelpPage from "@/pages/get-help/get-help-page";
 import NetWorthPage from "@/pages/net-worth/net-worth-page";
+import ClankerPage from "@/pages/clanker/clanker-page";
 
 export function App() {
   return (
@@ -20,6 +21,7 @@ export function App() {
       <Route path="/categories" element={<CategoriesPage />} />
       <Route path="/tags" element={<TagsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/clanker" element={<ClankerPage />} />
       <Route path="/components" element={<ComponentExample />} />
       <Route path="/" element={<Navigate to="/dashboard" />} />
     </Routes>

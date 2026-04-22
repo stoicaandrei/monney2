@@ -169,6 +169,32 @@ export const update = mutation({
   },
 })
 
+export const remove = mutation({
+  args: { id: v.id('wallets') },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const wallet = await ctx.db.get(args.id)
+    if (!wallet) throw new Error('Wallet not found')
+    if (wallet.userId !== user._id) throw new Error('Unauthorized')
+
+    const transactions = await ctx.db
+      .query('transactions')
+      .withIndex('by_walletId', (q) => q.eq('walletId', args.id))
+      .collect()
+
+    for (const transaction of transactions) {
+      if (transaction.userId === user._id) {
+        await ctx.db.delete(transaction._id)
+      }
+    }
+
+    await ctx.db.delete(args.id)
+    return { success: true }
+  },
+})
+
 export const reorder = mutation({
   args: {
     updates: v.array(
