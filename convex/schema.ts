@@ -50,7 +50,18 @@ export default defineSchema({
     color: walletColorValidator,
     icon: walletIconValidator,
     initialAmount: v.number(),
+    sectionId: v.optional(v.union(v.id('walletSections'), v.null())),
     order: v.optional(v.number()),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_sectionId', ['userId', 'sectionId']),
+
+  walletSections: defineTable({
+    userId: v.id('users'),
+    name: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
   }).index('by_userId', ['userId']),
 
   categories: defineTable({
