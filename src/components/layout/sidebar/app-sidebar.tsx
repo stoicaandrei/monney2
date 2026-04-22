@@ -20,6 +20,7 @@ import {
   Wallet01Icon,
   PieChart01Icon,
   ChartHistogramIcon,
+  ChartUpIcon,
   RepeatIcon,
   Folder01Icon,
   Tag01Icon,
@@ -44,6 +45,11 @@ const data = {
       title: "Wallets",
       url: "/wallets",
       icon: <HugeiconsIcon icon={Wallet01Icon} strokeWidth={2} />,
+    },
+    {
+      title: "Net Worth",
+      url: "/net-worth",
+      icon: <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} />,
     },
     {
       title: "Budgets",

@@ -30,6 +30,8 @@ const currencyValidator = v.union(
   v.literal('CHF')
 )
 
+const netWorthAssetTypeValidator = v.union(v.literal('retirement_account'))
+
 const categoryTypeValidator = v.union(
   v.literal('income'),
   v.literal('expense')
@@ -82,6 +84,28 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_userId_date', ['userId', 'date'])
     .index('by_walletId', ['walletId']),
+
+  netWorthAssets: defineTable({
+    userId: v.id('users'),
+    name: v.string(),
+    type: netWorthAssetTypeValidator,
+    currency: currencyValidator,
+    order: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_type', ['userId', 'type']),
+
+  netWorthSnapshots: defineTable({
+    userId: v.id('users'),
+    assetId: v.id('netWorthAssets'),
+    portfolioValue: v.number(),
+    investedAmount: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_assetId_createdAt', ['assetId', 'createdAt']),
 
   userPreferences: defineTable({
     userId: v.id('users'),

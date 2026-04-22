@@ -1,0 +1,85 @@
+'use client'
+
+import * as React from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { type NetWorthAsset } from '@/types/net-worth'
+
+interface NetWorthRenameAssetDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  asset: NetWorthAsset | null
+  onSubmit: (name: string) => void
+}
+
+export function NetWorthRenameAssetDialog({
+  open,
+  onOpenChange,
+  asset,
+  onSubmit,
+}: NetWorthRenameAssetDialogProps) {
+  const [name, setName] = React.useState('')
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (!open) return
+    setName(asset?.name ?? '')
+    setError(null)
+  }, [open, asset])
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setError('Name is required')
+      return
+    }
+    onSubmit(trimmed)
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Rename asset</DialogTitle>
+          </DialogHeader>
+          <FieldGroup className="py-4">
+            <Field>
+              <FieldLabel>Asset name</FieldLabel>
+              <Input
+                value={name}
+                onChange={(event) => {
+                  setName(event.target.value)
+                  setError(null)
+                }}
+                placeholder="e.g. Vanguard IRA"
+                aria-invalid={!!error}
+              />
+              <FieldError errors={error ? [{ message: error }] : undefined} />
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Save name</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
