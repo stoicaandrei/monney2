@@ -175,6 +175,7 @@ function WalletSectionColumn({
   onDelete,
   onCreateWallet,
   onRenameSection,
+  onDeleteSection,
   dragHandleAttributes,
   dragHandleListeners,
   setDragHandleRef,
@@ -187,6 +188,7 @@ function WalletSectionColumn({
   onDelete: (wallet: Wallet) => void;
   onCreateWallet: () => void;
   onRenameSection?: (section: WalletSection) => void;
+  onDeleteSection?: (section: WalletSection) => void;
   dragHandleAttributes?: ReturnType<typeof useSortable>["attributes"];
   dragHandleListeners?: ReturnType<typeof useSortable>["listeners"];
   setDragHandleRef?: ReturnType<typeof useSortable>["setActivatorNodeRef"];
@@ -219,6 +221,17 @@ function WalletSectionColumn({
             >
               <HugeiconsIcon icon={Edit02Icon} strokeWidth={2} />
               <span className="sr-only">Rename section</span>
+            </Button>
+          )}
+          {!section.isSystem && onDeleteSection && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDeleteSection(section as WalletSection)}
+            >
+              Delete
             </Button>
           )}
           {setDragHandleRef && (
@@ -274,6 +287,7 @@ function SortableWalletSectionColumn({
   onDelete,
   onCreateWallet,
   onRenameSection,
+  onDeleteSection,
 }: {
   section: WalletSection;
   wallets: Wallet[];
@@ -282,6 +296,7 @@ function SortableWalletSectionColumn({
   onDelete: (wallet: Wallet) => void;
   onCreateWallet: () => void;
   onRenameSection: (section: WalletSection) => void;
+  onDeleteSection: (section: WalletSection) => void;
 }) {
   const {
     setNodeRef,
@@ -308,6 +323,7 @@ function SortableWalletSectionColumn({
         onDelete={onDelete}
         onCreateWallet={onCreateWallet}
         onRenameSection={onRenameSection}
+        onDeleteSection={onDeleteSection}
         dragHandleAttributes={attributes}
         dragHandleListeners={listeners}
         setDragHandleRef={setActivatorNodeRef}
@@ -355,6 +371,7 @@ export default function WalletsPage() {
   const reorderWallets = useMutation(api.wallets.reorder);
   const createSection = useMutation(api.wallets.createSection);
   const renameSection = useMutation(api.wallets.renameSection);
+  const removeSection = useMutation(api.wallets.removeSection);
   const reorderSections = useMutation(api.wallets.reorderSections);
 
   const sensors = useSensors(
@@ -557,6 +574,23 @@ export default function WalletsPage() {
       });
   };
 
+  const handleDeleteSection = (section: WalletSection) => {
+    const shouldDelete = window.confirm(
+      `Delete "${section.name}" section? Wallets inside it will be moved to Unsectioned.`,
+    );
+    if (!shouldDelete) return;
+
+    removeSection({ id: section.id as Id<"walletSections"> })
+      .then(() => {
+        toast.success("Section deleted");
+      })
+      .catch((mutationError: unknown) => {
+        toast.error(
+          `Could not delete section: ${mutationError instanceof Error ? mutationError.message : "Unknown error"}`,
+        );
+      });
+  };
+
   const activeWallet = wallets.find((wallet) => wallet.id === activeWalletId) ?? null;
 
   if (error) {
@@ -665,6 +699,7 @@ export default function WalletsPage() {
                               onDelete={handleDelete}
                               onCreateWallet={handleCreate}
                               onRenameSection={handleOpenRenameSection}
+                              onDeleteSection={handleDeleteSection}
                             />
                           );
                         })}

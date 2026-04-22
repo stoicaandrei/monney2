@@ -317,3 +317,31 @@ export const renameSection = mutation({
     return { success: true }
   },
 })
+
+export const removeSection = mutation({
+  args: {
+    id: v.id('walletSections'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const section = await ctx.db.get(args.id)
+    if (!section) throw new Error('Section not found')
+    if (section.userId !== user._id) throw new Error('Unauthorized')
+
+    const sectionWallets = await ctx.db
+      .query('wallets')
+      .withIndex('by_userId_sectionId', (q) =>
+        q.eq('userId', user._id).eq('sectionId', args.id)
+      )
+      .collect()
+
+    for (const wallet of sectionWallets) {
+      await ctx.db.patch(wallet._id, { sectionId: null })
+    }
+
+    await ctx.db.delete(args.id)
+    return { success: true }
+  },
+})
