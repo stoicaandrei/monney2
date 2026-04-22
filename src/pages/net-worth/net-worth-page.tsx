@@ -81,7 +81,7 @@ export default function NetWorthPage() {
     null
   )
 
-  const displayCurrency = assets[0]?.currency ?? defaultCurrency
+  const displayCurrency = defaultCurrency
   const currencySymbol =
     CURRENCIES.find((currency) => currency.id === displayCurrency)?.symbol ??
     displayCurrency

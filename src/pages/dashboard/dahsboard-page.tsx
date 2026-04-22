@@ -76,8 +76,9 @@ export default function DashboardPage() {
   const expensesByCategory = useQuery(api.dashboard.expensesByCategory, {
     days,
   });
+  const preferences = useQuery(api.userPreferences.get);
   const wallets = useQuery(api.wallets.list) ?? [];
-  const currency = wallets[0]?.currency ?? "USD";
+  const currency = preferences?.defaultCurrency ?? wallets[0]?.currency ?? "USD";
 
   const formatCurrency = (value: number) =>
     value.toLocaleString(undefined, { style: "currency", currency });
