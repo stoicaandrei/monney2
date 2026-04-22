@@ -74,22 +74,69 @@ export default function ClankerPage() {
     messagesBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const addScreenshots = React.useCallback(async (files: File[]) => {
+    if (files.length === 0) return;
+
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast.error("Only image files are supported.");
+      return;
+    }
+
+    const nextScreenshots = await Promise.all(
+      imageFiles.map(async (file) => ({
+        name: file.name || `pasted-image-${Date.now()}.png`,
+        dataUrl: await fileToCompressedDataUrl(file),
+      })),
+    );
+    setScreenshots((current) => [...current, ...nextScreenshots]);
+  }, []);
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (files.length === 0) return;
 
     try {
-      const nextScreenshots = await Promise.all(
-        files.map(async (file) => ({
-          name: file.name,
-          dataUrl: await fileToCompressedDataUrl(file),
-        })),
-      );
-      setScreenshots((current) => [...current, ...nextScreenshots]);
+      await addScreenshots(files);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not add image");
     } finally {
       event.target.value = "";
+    }
+  };
+
+  const handleTextareaPaste = async (
+    event: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const clipboardItems = Array.from(event.clipboardData.items ?? []);
+    const imageFiles = clipboardItems
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file !== null);
+
+    if (imageFiles.length === 0) return;
+
+    try {
+      await addScreenshots(imageFiles);
+      toast.success(
+        imageFiles.length === 1
+          ? "Pasted image attached."
+          : `${imageFiles.length} pasted images attached.`,
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not paste image");
+    }
+  };
+
+  const handleTextareaKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+      return;
+    }
+    event.preventDefault();
+    if (!isSending) {
+      void handleSend();
     }
   };
 
@@ -233,6 +280,8 @@ export default function ClankerPage() {
                       <Textarea
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
+                        onPaste={handleTextareaPaste}
+                        onKeyDown={handleTextareaKeyDown}
                         placeholder="Example: From this screenshot, create a wallet called Revolut EUR and add the grocery transaction."
                         rows={4}
                       />
